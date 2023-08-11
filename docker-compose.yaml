@@ -1,0 +1,67 @@
+version: '2'
+
+services:
+  users_web:
+    build: ./users
+    command: bash -c "python ./users/manage.py makemigrations && python ./users/manage.py migrate && python ./users/manage.py runserver 0.0.0.0:8001"
+    volumes:
+      - .:/app
+    ports:
+      - 8001:8001
+    restart: always
+
+  cadastre_web:
+    build: ./cadastre
+    command: bash -c "python ./cadastre/manage.py makemigrations && python ./cadastre/manage.py migrate && python ./cadastre/manage.py runserver 0.0.0.0:8002"
+    volumes:
+      - .:/app
+    ports:
+      - 8002:8002
+    restart: always
+
+  datalab_web:
+    build: ./datalab
+    command: bash -c "python ./datalab/manage.py makemigrations && python ./datalab/manage.py migrate && python ./datalab/manage.py runserver 0.0.0.0:8003"
+    volumes:
+      - .:/app
+    ports:
+      - 8003:8003
+    restart: always
+
+  blog_web:
+    build: ./blog
+    command: bash -c "python ./blog/manage.py makemigrations && python ./blog/manage.py migrate && python ./blog/manage.py runserver 0.0.0.0:8004"
+    volumes:
+      - .:/app
+    ports:
+      - 8004:8004
+    restart: always
+
+  home_web:
+    build: ./home
+    command: bash -c "python ./home/manage.py makemigrations && python ./home/manage.py migrate && python ./home/manage.py runserver 0.0.0.0:8005"
+    volumes:
+      - .:/app
+    ports:
+      - 8005:8005
+    restart: always
+
+
+
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    links:
+      - users_web
+      - cadastre_web
+      - datalab_web
+      - blog_web
+      - home_web
+    depends_on:
+      - users_web
+      - cadastre_web
+      - datalab_web
+      - blog_web
+      - home_web
