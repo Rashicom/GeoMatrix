@@ -8,7 +8,7 @@ urlpatterns = [
     path('edit_address/',views.edit_address.as_view()),
     path('update_user/',views.update_user.as_view()),
     path('new_transaction/',views.new_transaction.as_view()),
-    
+    path('get_wallet_balance/',views.get_wallet_balance.as_view()),
     
 
 ]

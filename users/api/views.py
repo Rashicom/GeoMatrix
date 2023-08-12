@@ -266,3 +266,18 @@ class new_transaction(APIView):
             # here a new serializer is used to return all data, class serializer only return type and amount
             transaction_serializer = Wallet_transactions_table_serializer(new_transaction)
             return Response(transaction_serializer.data,status=201)
+
+
+
+# wallet balance
+class get_wallet_balance(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        """
+        fetching user wallet balance
+        """
+        user = request.user
+        wallet_instence = Wallet.objects.get(user = user)
+        return Response({"balance":wallet_instence.balance},status=200)
