@@ -52,7 +52,7 @@ class CustomUser(AbstractUser):
     social_rank = models.FloatField(default=2.5)
     user_otp = models.CharField(max_length=5, blank=True, null=True)
 
-
+    
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

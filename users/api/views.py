@@ -3,10 +3,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import authenticate
-from .serializers import Custom_user_serializer, Login_serializer_user
+from .serializers import Custom_user_serializer, Login_serializer_user, Address_serializer
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Wallet
+from .models import Wallet, Address
 
 
 # Create your views here.
@@ -101,3 +101,71 @@ class login(APIView):
 
 
 
+# update address table
+class add_address(APIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = Address_serializer
+
+    def post(self, request, format=None):
+        """
+        this function is expecting all address fields and create
+        a new address for the user who authenticated and return the 
+        created address as a response
+        """
+
+        # fetching data
+        user = request.user
+        serializer = self.serializer_class(data=request.data)
+
+        # validating data, if exception found, message automaticaly send to the frond end
+        if serializer.is_valid(raise_exception=True):
+            """
+            creating a new address for the user who is authenticated 
+            and save it and return the created address as a resoponse
+            
+            if any exception found whicle calling is_valied, the exception send back
+            implicitly, becouse raise_exception set to true
+            """
+
+            try:
+                serializer.save(user = user)
+            except Exception as e:
+                print(e)
+                return Response({"details":"somthing went wrong"}, status=400)
+            return Response(serializer.data, status=201)
+
+
+
+# edit address
+# edit address
+class edit_address(APIView):
+
+    permission_classes=[IsAuthenticated]
+    serializer_class = Address_serializer
+
+    def patch(self, request, format=None):
+        """
+        updating user address details
+        """
+        address_instence = Address.objects.get(user = request.user)
+        # serializing data
+        serialized_data = self.serializer_class(address_instence,data = request.data, partial=True)
+        
+        # validating serialized data
+        # if any exception found exception implicitly send back to frondend
+        # raise_exception responsible for implicit return
+        if serialized_data.is_valid(raise_exception=True):
+            """
+            serializer model class Address have one forign key.
+            if the user wants to update the state or country we have to fetch the insance of the country or state
+            and update in in the address side 
+            """
+            
+            try:
+                serialized_data.save()
+                return Response(serialized_data.data, status=201)
+            except Exception as e:
+                print(e)
+                return Response({"details": "something went wrong"},status=403)
+            
