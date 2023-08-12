@@ -1,5 +1,4 @@
 from django.db import models
-
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 
@@ -58,37 +57,43 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
 
-# address
-# referencing user one to one reation
-class Address(models.Model):
-    address_id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    address = models.CharField(max_length=50)
-    locality = models.CharField(max_length=20)
-    district =  models.CharField(max_length=20)
-    state = models.CharField(max_length=20)
-    zipcode = models.CharField(max_length=10)
-    country = models.CharField(max_length=20, default="INDIA")
+
+# main section
+class main_section(models.Model):
+    title = models.CharField(max_length=100)
+    
+
+class main_section_images(models.Model):
+    main_section = models.ForeignKey(main_section, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=None)
+
+class main_section_description(models.Model):
+    main_section = models.ForeignKey(main_section, on_delete=models.CASCADE)
+    description = models.TextField()
 
 
-# users wallet
-# one to one relation with user
-class Wallet(models.Model):
-    wallet_id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    balance = models.IntegerField(default=0)
 
 
-# one to many relation with wallet
-class Wallet_transaction(models.Model):
-    # choices
-    class wallet_transaction_type_chices(models.TextChoices):
-        DEPOSIT = "DEPOSIT",
-        WITHDRAWAL = "WITHDRAWAL"
 
-    wallet_transaction_id = models.AutoField(primary_key=True)
-    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
-    wallet_transaction_type = models.CharField(max_length=50, choices=wallet_transaction_type_chices.choices)
-    wallet_transaction_date = models.DateField(auto_now_add=True)
-    wallet_transaction_status = models.BooleanField(default=True)
-    wallet_transaction_amount = models.IntegerField()
+# about section
+class about_section(models.Model):
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="about_section", height_field=None, width_field=None, max_length=None)
+    description = models.TextField()
+
+
+
+
+# product section
+class product_section(models.Model):
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="about_section", height_field=None, width_field=None, max_length=None)
+    description = models.TextField()
+
+
+
+# service section
+class service_section(models.Model):
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to="about_section", height_field=None, width_field=None, max_length=None)
+    description = models.TextField()
