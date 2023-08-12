@@ -6,6 +6,9 @@ urlpatterns = [
     path('login/',views.login.as_view()),
     path('add_address/', views.add_address.as_view()),
     path('edit_address/',views.edit_address.as_view()),
+    path('update_user/',views.update_user.as_view()),
+    path('new_transaction/',views.new_transaction.as_view()),
+    
     
 
 ]
