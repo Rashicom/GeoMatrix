@@ -6,8 +6,9 @@ from rest_framework.authentication import authenticate
 from .serializers import Custom_user_serializer, Login_serializer_user, Address_serializer, Wallet_transaction_serializer, Wallet_transactions_table_serializer
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Wallet, Address
-
+from .models import Wallet, Address, Wallet_transaction
+from datetime import date
+from django.db.models import Q
 
 # Create your views here.
 
@@ -281,3 +282,65 @@ class get_wallet_balance(APIView):
         user = request.user
         wallet_instence = Wallet.objects.get(user = user)
         return Response({"balance":wallet_instence.balance},status=200)
+
+
+
+# get vallet transaction by transactin id
+class get_wallet_transaction(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = Wallet_transactions_table_serializer
+
+    def get(self, request, format=None):
+        """
+        this function searching for a perticular transaction by transaction id
+        which given by the user and fetching the transactin details and send back
+        """
+
+        # fetching data from params
+        wallet_transaction_id = request.query_params.get('wallet_transaction_id')
+        
+        # fetching transaction details by given transaction id
+        try:
+            transaction = Wallet_transaction.objects.get(wallet_transaction_id = wallet_transaction_id)
+        except Exception as e:
+            print(e)
+            return Response({"details":"transaction not found"},status=404)
+
+        # serializing data if the tranacion found and return
+        serializer = self.serializer_class(transaction)
+        return Response(serializer.data,status=200)
+
+
+# transaction history
+class trasaction_history(APIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = Wallet_transactions_table_serializer
+
+    def get(self, request, format=None):
+        """
+        filtering the users transaction history by date
+        date_from is set to today date if date_from is not provided
+        and to date set to None
+        """
+
+        # fetching data from params
+        date_from = request.query_params.get('date_from', None)
+        date_to = request.query_params.get('date_to', date.today())
+
+        # wallet instance to filter
+        user = request.user
+        wallet_instance = Wallet.objects.get(user=user)
+
+        # filtering logic
+        if date_from == None:
+            transactions = Q(wallet_id=wallet_instance) & Q(wallet_transaction_date__lte=date_to)
+        
+        else:
+            transactions = Q(wallet_id=wallet_instance) & Q(wallet_transaction_date__lte = date_to) & Q(wallet_transaction_date__gte = date_from)
+
+        # filtering wallet transaction history and serializing data
+        transactions = Wallet_transaction.objects.filter(transactions)
+        serialized_data = self.serializer_class(transactions, many=True)
+        
+        return Response(serialized_data.data, status=200)
