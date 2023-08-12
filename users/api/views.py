@@ -13,7 +13,7 @@ from .models import Wallet
 
 # user creation
 class signup(APIView):
-    authentication_classes = [AllowAny]
+    permission_classes = [AllowAny]
     serializer_class = Custom_user_serializer
 
     def post(self, request, format=None):
@@ -98,3 +98,6 @@ class login(APIView):
             # if user none, wrong email or passord
             else:
                 return Response({"details":"wrong email or password"}, status=401)
+
+
+
