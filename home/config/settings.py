@@ -41,11 +41,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
+    'corsheaders',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -65,7 +70,8 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -152,3 +158,6 @@ AUTH_USER_MODEL = "api.CustomUser"
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 MEDIA_URL = '/media/'
+
+# cors configure
+CORS_ALLOW_ALL_ORIGINS = True
