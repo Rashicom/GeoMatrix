@@ -65,13 +65,11 @@ class main_section(models.Model):
 
 class main_section_images(models.Model):
     main_section = models.ForeignKey(main_section, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=None)
+    image = models.ImageField(upload_to="main_section_images")
 
-class main_section_description(models.Model):
+class main_section_descriptions(models.Model):
     main_section = models.ForeignKey(main_section, on_delete=models.CASCADE)
     description = models.TextField()
-
-
 
 
 
@@ -87,7 +85,7 @@ class about_section(models.Model):
 # product section
 class product_section(models.Model):
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to="about_section", height_field=None, width_field=None, max_length=None)
+    image = models.ImageField(upload_to="product_section", height_field=None, width_field=None, max_length=None)
     description = models.TextField()
 
 
@@ -95,5 +93,5 @@ class product_section(models.Model):
 # service section
 class service_section(models.Model):
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to="about_section", height_field=None, width_field=None, max_length=None)
+    image = models.ImageField(upload_to="service_section", height_field=None, width_field=None, max_length=None)
     description = models.TextField()
