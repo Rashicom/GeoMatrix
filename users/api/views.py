@@ -3,14 +3,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import authenticate
-from .serializers import Custom_user_serializer, Login_serializer_user, Address_serializer, Wallet_transaction_serializer, Wallet_transactions_table_serializer
+from .serializers import (
+    Custom_user_serializer,
+    Login_serializer_user,
+    Address_serializer,
+    Wallet_transaction_serializer,
+    Wallet_transactions_table_serializer,
+)
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Wallet, Address, Wallet_transaction
 from datetime import date
 from django.db.models import Q
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # Create your views here.
+
 
 # user creation
 class signup(APIView):
@@ -25,7 +33,7 @@ class signup(APIView):
         print("request hit")
         # serializing request.data
         serializer = self.serializer_class(data=request.data)
-        
+
         if serializer.is_valid(raise_exception=True):
             """
             if the data is validated password is hashed and creating new user.
@@ -33,26 +41,26 @@ class signup(APIView):
             """
 
             # creating user and and set password, save() doesnt hash password
-            hashed_password = make_password(serializer.validated_data['password'])
-            user = serializer.save(password = hashed_password)
-            
+            hashed_password = make_password(serializer.validated_data["password"])
+            user = serializer.save(password=hashed_password)
+
             # excluding password from the response and send response
             response_data = serializer.data
 
             # updating wallet table
-            new_wallet = Wallet(user = user)
+            new_wallet = Wallet(user=user)
             new_wallet.save()
 
             # removing password from response and send response
-            response_data.pop('password')
+            response_data.pop("password")
             print("user created")
-            return Response(response_data,status=201)
-            
+            return Response(response_data, status=201)
+
 
 # login
 # login
 class login(APIView):
-
+  
     serializer_class = Login_serializer_user
     permission_classes = [AllowAny]
 
@@ -68,50 +76,49 @@ class login(APIView):
         # validating credencians, if credencials invalied error message
         # automatically send to frond end
         if seriazed_data.is_valid(raise_exception=True):
-            
+  
             # fetching credencials for validation
-            email = seriazed_data.validated_data['email']
-            password = seriazed_data.validated_data['password']
+            email = seriazed_data.validated_data["email"]
+            password = seriazed_data.validated_data["password"]
 
             # authenticate func returns user instence if authenticated
-            user = authenticate(email = email, password = password)
+            user = authenticate(email=email, password=password)
 
             # if user is authenticated generate jwt
             if user is not None:
-                
+  
                 print("login success")
                 # generating jwt tocken
                 refresh = RefreshToken.for_user(user)
                 access = refresh.access_token
-                
+
                 # returning response with access and refresh tocken
                 # refresh tocken used to generate new tocken before tockens session expired
-                return Response(          
+                return Response(
                     {
-                        "email":email,
-                        "password":password,
-                        "access":str(access),
-                        "refresh":str(refresh)
+                        "email": email,
+                        "password": password,
+                        "access": str(access),
+                        "refresh": str(refresh),
                     },
-                    status=201     
+                    status=201,
                 )
-            
+
             # if user none, wrong email or passord
             else:
-                return Response({"details":"wrong email or password"}, status=401)
-
+                return Response({"details": "wrong email or password"}, status=401)
 
 
 # update address table
 class add_address(APIView):
-
+  
     permission_classes = [IsAuthenticated]
     serializer_class = Address_serializer
 
     def post(self, request, format=None):
         """
         this function is expecting all address fields and create
-        a new address for the user who authenticated and return the 
+        a new address for the user who authenticated and return the
         created address as a response
         """
 
@@ -122,18 +129,18 @@ class add_address(APIView):
         # validating data, if exception found, message automaticaly send to the frond end
         if serializer.is_valid(raise_exception=True):
             """
-            creating a new address for the user who is authenticated 
+            creating a new address for the user who is authenticated
             and save it and return the created address as a resoponse
-            
+
             if any exception found whicle calling is_valied, the exception send back
             implicitly, becouse raise_exception set to true
             """
 
             try:
-                serializer.save(user = user)
+                serializer.save(user=user)
             except Exception as e:
                 print(e)
-                return Response({"details":"somthing went wrong"}, status=400)
+                return Response({"details": "somthing went wrong"}, status=400)
             return Response(serializer.data, status=201)
 
 
@@ -141,18 +148,20 @@ class add_address(APIView):
 # edit address
 # edit address
 class edit_address(APIView):
-
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = Address_serializer
 
     def patch(self, request, format=None):
         """
         updating user address details
         """
-        address_instence = Address.objects.get(user = request.user)
+
+        address_instence = Address.objects.get(user=request.user)
         # serializing data
-        serialized_data = self.serializer_class(address_instence,data = request.data, partial=True)
-        
+        serialized_data = self.serializer_class(
+            address_instence, data=request.data, partial=True
+        )
+
         # validating serialized data
         # if any exception found exception implicitly send back to frondend
         # raise_exception responsible for implicit return
@@ -160,22 +169,36 @@ class edit_address(APIView):
             """
             serializer model class Address have one forign key.
             if the user wants to update the state or country we have to fetch the insance of the country or state
-            and update in in the address side 
+            and update in in the address side
             """
-            
+
             try:
                 serialized_data.save()
                 return Response(serialized_data.data, status=201)
             except Exception as e:
                 print(e)
-                return Response({"details": "something went wrong"},status=500)
-            
+                return Response({"details": "something went wrong"}, status=500)
+
+
+
+# get address
+class get_address(APIView):
+    permission_classes = [IsAuthenticated]
+    serialzier_class = Address_serializer
+
+    def get(self, request, format=None):
+        address = Address.objects.get(user=request.user)
+        serializer = self.serialzier_class(address)
+        print(serializer.data)
+        return Response(serializer.data, status=200)
+
 
 # update profile picture
 class update_user(APIView):
-    
+
     permission_classes = [IsAuthenticated]
     serialzier_class = Custom_user_serializer
+
     def patch(self, request, format=None):
         """
         this function expecting any field of the user and update that specific field
@@ -185,23 +208,24 @@ class update_user(APIView):
         # prevent changing sensitive fields like social_rank, is_staff etc.
         for key in request.data.keys():
             if key in ["social_rank", "is_staff", "is_admin"]:
-                return Response({"details": "you cant change this field"},status=400)
-        
+                return Response({"details": "you cant change this field"}, status=400)
+
         # fetching and serializing it
-        serializer = self.serialzier_class(request.user,data=request.data, partial=True)
-        
+        serializer = self.serialzier_class(
+            request.user, data=request.data, partial=True
+        )
+
         # validating data
         if serializer.is_valid(raise_exception=True):
-            
+
             # saving updations
             try:
                 serializer.save()
             except Exception as e:
                 print(e)
-                return Response({"details": "something went wrong"},status=500)
+                return Response({"details": "something went wrong"}, status=500)
             # returning response
-            return Response(serializer.data,status=201)
-
+            return Response(serializer.data, status=201)
 
 
 # new transaction
@@ -217,11 +241,11 @@ class new_transaction(APIView):
 
         # fetching data and get wallet instence to update wattet transaction
         user = request.user
-        wallet_instance = Wallet.objects.get(user_id = user)
+        wallet_instance = Wallet.objects.get(user_id=user)
 
         # serializing data
         serializer = self.serializer_class(data=request.data)
-        
+
         # returning serializing error implicitly to the frond end.
         if serializer.is_valid(raise_exception=True):
             """
@@ -232,9 +256,13 @@ class new_transaction(APIView):
             and check the balance in the wallet to make a succussfull update,
             otherwise it returns a insufficiant balance warning
             """
-            
-            wallet_transaction_type = serializer.validated_data.get('wallet_transaction_type')
-            wallet_transaction_amount = serializer.validated_data.get('wallet_transaction_amount')
+
+            wallet_transaction_type = serializer.validated_data.get(
+                "wallet_transaction_type"
+            )
+            wallet_transaction_amount = serializer.validated_data.get(
+                "wallet_transaction_amount"
+            )
 
             # buissiness logic for wallet balence cross match and upation
             # if the type is withdrowel
@@ -244,30 +272,33 @@ class new_transaction(APIView):
                 otherwise it returns insufficiant balance
                 """
                 if wallet_transaction_amount > wallet_instance.balance:
-                    return Response({"details":"insufficient balance"},status=403)
+                    return Response({"details": "insufficient balance"}, status=403)
                 else:
-                    wallet_instance.balance = wallet_instance.balance - wallet_transaction_amount
-            
+                    wallet_instance.balance = (
+                        wallet_instance.balance - wallet_transaction_amount
+                    )
+
             # if the type is deposit
             elif wallet_transaction_type == "DEPOSIT":
                 wallet_instance.balance += wallet_transaction_amount
-            
+
             # save the wallet instence
             wallet_instance.save()
 
             try:
                 # creatiing wallet transaction and return response
-                new_transaction = serializer.save(wallet = wallet_instance)
+                new_transaction = serializer.save(wallet=wallet_instance)
 
             except Exception as e:
                 print(e)
-                return Response({"details":"something went wrong"},status=403)
+                return Response({"details": "something went wrong"}, status=403)
 
             # serializing the new transaction and return back to user
             # here a new serializer is used to return all data, class serializer only return type and amount
-            transaction_serializer = Wallet_transactions_table_serializer(new_transaction)
-            return Response(transaction_serializer.data,status=201)
-
+            transaction_serializer = Wallet_transactions_table_serializer(
+                new_transaction
+            )
+            return Response(transaction_serializer.data, status=201)
 
 
 # wallet balance
@@ -280,13 +311,13 @@ class get_wallet_balance(APIView):
         fetching user wallet balance
         """
         user = request.user
-        wallet_instence = Wallet.objects.get(user = user)
-        return Response({"balance":wallet_instence.balance},status=200)
-
+        wallet_instence = Wallet.objects.get(user=user)
+        return Response({"balance": wallet_instence.balance}, status=200)
 
 
 # get vallet transaction by transactin id
 class get_wallet_transaction(APIView):
+
     permission_classes = [IsAuthenticated]
     serializer_class = Wallet_transactions_table_serializer
 
@@ -297,18 +328,20 @@ class get_wallet_transaction(APIView):
         """
 
         # fetching data from params
-        wallet_transaction_id = request.query_params.get('wallet_transaction_id')
-        
+        wallet_transaction_id = request.query_params.get("wallet_transaction_id")
+
         # fetching transaction details by given transaction id
         try:
-            transaction = Wallet_transaction.objects.get(wallet_transaction_id = wallet_transaction_id)
+            transaction = Wallet_transaction.objects.get(
+                wallet_transaction_id=wallet_transaction_id
+            )
         except Exception as e:
             print(e)
-            return Response({"details":"transaction not found"},status=404)
+            return Response({"details": "transaction not found"}, status=404)
 
         # serializing data if the tranacion found and return
         serializer = self.serializer_class(transaction)
-        return Response(serializer.data,status=200)
+        return Response(serializer.data, status=200)
 
 
 # transaction history
@@ -325,8 +358,8 @@ class trasaction_history(APIView):
         """
 
         # fetching data from params
-        date_from = request.query_params.get('date_from', None)
-        date_to = request.query_params.get('date_to', date.today())
+        date_from = request.query_params.get("date_from", None)
+        date_to = request.query_params.get("date_to", date.today())
 
         # wallet instance to filter
         user = request.user
@@ -334,13 +367,19 @@ class trasaction_history(APIView):
 
         # filtering logic
         if date_from == None:
-            transactions = Q(wallet_id=wallet_instance) & Q(wallet_transaction_date__lte=date_to)
-        
+            transactions = Q(wallet_id=wallet_instance) & Q(
+                wallet_transaction_date__lte=date_to
+            )
+
         else:
-            transactions = Q(wallet_id=wallet_instance) & Q(wallet_transaction_date__lte = date_to) & Q(wallet_transaction_date__gte = date_from)
+            transactions = (
+                Q(wallet_id=wallet_instance)
+                & Q(wallet_transaction_date__lte=date_to)
+                & Q(wallet_transaction_date__gte=date_from)
+            )
 
         # filtering wallet transaction history and serializing data
         transactions = Wallet_transaction.objects.filter(transactions)
         serialized_data = self.serializer_class(transactions, many=True)
-        
+
         return Response(serialized_data.data, status=200)
