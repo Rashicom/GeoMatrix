@@ -172,6 +172,7 @@ class Gov_body_wallet(models.Model):
     balance = models.IntegerField(default=0)
 
 
+
 # one to many relation with wallet
 class Gov_body_wallet_transaction(models.Model):
     # choices
@@ -189,3 +190,5 @@ class Gov_body_wallet_transaction(models.Model):
     wallet_transaction_status = models.BooleanField(default=True)
     wallet_transaction_amount = models.IntegerField()
     
+
+

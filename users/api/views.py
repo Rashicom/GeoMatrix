@@ -404,7 +404,7 @@ class gov_body_signup(APIView):
         creating a address for the user, and update address
         create a zero balance account for the user then return info
         """
-        
+
         # serializing data for gov user table
         gov_body_serializer = self.serializer_class(data=request.data)
         gov_body_serializer.is_valid(raise_exception=True)
@@ -435,13 +435,16 @@ class gov_body_signup(APIView):
         if not unique:
             return Response({"details":"User already exist for this teritory"},status=409)
         
+        # hashing password to create user
+        hashed_password = make_password(gov_body_serializer.validated_data.get("password"))
+        
         try:
 
             # if any excepton found table updations are roll backed
             with transaction.atomic():
 
                 # if user is unique procede to create new gov user
-                new_gov_user = gov_body_serializer.save()
+                new_gov_user = gov_body_serializer.save(password=hashed_password)
                 gov_user_address = gov_body_address_serializer.save(gov_body=new_gov_user)
                 
                 # create a new wallet for the new gov user
@@ -465,7 +468,6 @@ class gov_body_signup(APIView):
         
         
 
-        
         
             
 
