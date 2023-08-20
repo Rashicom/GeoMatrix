@@ -62,6 +62,7 @@ ROOT_URLCONF = "config.urls"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=5),
+    
     # development only
     "SIGNING_KEY": "5ahp8kseKOVB_w",
 }

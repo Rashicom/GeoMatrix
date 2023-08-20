@@ -125,15 +125,21 @@ class Gov_body_user(AbstractUser):
     last_name = None
     
     # extra fields
+    class Role(models.TextChoices):
+        LOCAL = "LOCAL"
+        DISTRICT = "DISTRICT"
+        STATE = "STATE"
+
+    role = models.CharField(max_length=20, choices=Role.choices)
     email = models.EmailField(unique=True,
         error_messages={
-            "unique": _("A user with that username already exists."),
+            "unique": _("A user with the same email already exists."),
         },)
     gov_body_name = models.CharField(max_length=50)
     contact_number = models.CharField(max_length=12)
     profile_photo = models.ImageField(upload_to="Govuser_Profile_photos", null=True, blank=True)
     user_otp = models.CharField(max_length=5, blank=True, null=True)
-
+    
     # many to many field to  default groups and permission tables with defferent related_name argumets
     # helps to avoiding conflict with the Customuser, becouse both Custome user and gov_body_user inherit Abstract user
     groups = models.ManyToManyField(Group, verbose_name=_("groups"), blank=True, related_name="gov_body_set")
@@ -155,6 +161,7 @@ class Gov_body_Address(models.Model):
     district = models.CharField(max_length=20)
     state = models.CharField(max_length=20)
     country = models.CharField(max_length=20, default="INDIA")
+
 
 
 # gov_user wallet
@@ -181,3 +188,4 @@ class Gov_body_wallet_transaction(models.Model):
     wallet_transaction_date = models.DateField(auto_now_add=True)
     wallet_transaction_status = models.BooleanField(default=True)
     wallet_transaction_amount = models.IntegerField()
+    

@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,14 +8,20 @@ from .serializers import (
     Address_serializer,
     Wallet_transaction_serializer,
     Wallet_transactions_table_serializer,
+
+    governmental_body_user_serializer,
+    gov_body_Address_serializer,
+    gov_body_wallet_serializer
+
 )
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Wallet, Address, Wallet_transaction
+from .models import Wallet, Address, Wallet_transaction, Gov_body_wallet, Gov_body_user
 from datetime import date
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from django.db import transaction
+from .helper import UniqueGovUser
 # Create your views here.
 
 
@@ -27,7 +32,7 @@ class signup(APIView):
 
     def post(self, request, format=None):
         """
-        creating useer, recieving request.data and serialzing it, then
+        creating user, recieving request.data and serialzing it, then
         if validated create new user return a newly generated jwt access and refresh tocken
         """
         print("request hit")
@@ -57,7 +62,7 @@ class signup(APIView):
             return Response(response_data, status=201)
 
 
-# login
+
 # login
 class login(APIView):
   
@@ -377,9 +382,90 @@ class trasaction_history(APIView):
                 & Q(wallet_transaction_date__lte=date_to)
                 & Q(wallet_transaction_date__gte=date_from)
             )
-
+        
         # filtering wallet transaction history and serializing data
         transactions = Wallet_transaction.objects.filter(transactions)
         serialized_data = self.serializer_class(transactions, many=True)
 
         return Response(serialized_data.data, status=200)
+
+
+
+
+"//////////////////////////  Gov_body_user  ////////////////////////////////"
+
+class gov_body_signup(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = governmental_body_user_serializer
+
+    def post(self, request, format=None):
+        """
+        creating a user with role
+        creating a address for the user, and update address
+        create a zero balance account for the user then return info
+        """
+        
+        # serializing data for gov user table
+        gov_body_serializer = self.serializer_class(data=request.data)
+        gov_body_serializer.is_valid(raise_exception=True)
+
+        # serializing data fro gov_users address
+        gov_body_address_serializer = gov_body_Address_serializer(data=request.data)
+        gov_body_address_serializer.is_valid(raise_exception=True)
+        
+        # checking the user is unique for a perticular place
+        # cannot create two gov body's for a same location
+        # fetchind role and address data for checking
+        role = gov_body_serializer.validated_data.get("role")
+        state = gov_body_address_serializer.validated_data.get("state")
+        district = gov_body_address_serializer.validated_data.get("district")
+        locality = gov_body_address_serializer.validated_data.get("locality")
+        
+        # checkign existing gov_user in the smae role and same place
+        try:
+            gov_user = UniqueGovUser(role=role, state=state, district=district, locality=locality)
+            unique = gov_user.is_unique()
+
+        except Exception as e:
+            print(e)
+            return Response({"details":"somthing went wrong"},status=500)
+        
+
+        # if the user already exists return conflict status
+        if not unique:
+            return Response({"details":"User already exist for this teritory"},status=409)
+        
+        try:
+
+            # if any excepton found table updations are roll backed
+            with transaction.atomic():
+
+                # if user is unique procede to create new gov user
+                new_gov_user = gov_body_serializer.save()
+                gov_user_address = gov_body_address_serializer.save(gov_body=new_gov_user)
+                
+                # create a new wallet for the new gov user
+                new_wallet = Gov_body_wallet.objects.create(Gov_body=new_gov_user)
+                
+                new_wallet_data = gov_body_wallet_serializer(new_wallet)
+                
+
+        except Exception as e:
+            print(e)
+            return Response({"details":"somthing went wrong"},status=500)
+
+        # returning all the created data. user, address and wallet details
+        return Response(
+            {"user":gov_body_serializer.data,
+            "address":gov_body_address_serializer.data,
+            "wallet":new_wallet_data.data
+            },
+            status=201
+        )
+        
+        
+
+        
+        
+            
+

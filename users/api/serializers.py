@@ -1,4 +1,4 @@
-from .models import CustomUser, Address, Wallet, Wallet_transaction
+from .models import CustomUser, Address, Wallet_transaction, Gov_body_user, Gov_body_Address,Gov_body_wallet
 from rest_framework import serializers
 
 
@@ -46,3 +46,31 @@ class Wallet_transactions_table_serializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet_transaction
         fields = "__all__"
+
+
+
+
+
+"//////////////////////////  Gov_body_user serializers  ////////////////////////////////"
+
+# for creating admin user
+class governmental_body_user_serializer(serializers.ModelSerializer):   
+    class Meta:
+        model = Gov_body_user
+        fields = '__all__'
+
+# for creating and updating address
+class gov_body_Address_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gov_body_Address
+        fields = ['locality','district','state','country']
+
+
+class gov_body_wallet_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gov_body_wallet
+        fields = '__all__'
+
+
+
+
