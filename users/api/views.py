@@ -510,7 +510,6 @@ class GovBodylogin(APIView):
                 return Response(
                     {
                         "email": email,
-                        "password": password,
                         "access": str(access),
                         "refresh": str(refresh),
                     },
@@ -524,15 +523,18 @@ class GovBodylogin(APIView):
             
 
 # get address
-class GetgovuserAddress(APIView):
+class GetGovwalletbalance(APIView):
     authentication_classes = [GovuserJwtAuthentication]
     permission_classes = [IsAuthenticated]
-    serialzier_class = Address_serializer
 
     def get(self, request, format=None):
-        print("request hit")
-        print(request.user)
+        wallet = Gov_body_wallet.objects.get(Gov_body=request.user)
+
         
-        if request.auth:
-            print("authentication success")
-        return Response(status=200)
+        return Response(
+            {
+                "id": wallet.wallet_id,
+                "balance": wallet.balance
+            },
+            status=200
+        )
