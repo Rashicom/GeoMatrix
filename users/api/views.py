@@ -24,6 +24,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from .helper import UniqueGovUser
 from .Customauthentication import authenticate_govuser
+from .Customauthentication import GovuserJwtAuthentication
 # Create your views here.
 
 
@@ -446,7 +447,7 @@ class gov_body_signup(APIView):
             with transaction.atomic():
 
                 # if user is unique procede to create new gov user
-                new_gov_user = gov_body_serializer.save(password=hashed_password)
+                new_gov_user = gov_body_serializer.save(password=hashed_password, is_active=True)
                 gov_user_address = gov_body_address_serializer.save(gov_body=new_gov_user)
                 
                 # create a new wallet for the new gov user
@@ -522,3 +523,16 @@ class GovBodylogin(APIView):
         
             
 
+# get address
+class GetgovuserAddress(APIView):
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
+    serialzier_class = Address_serializer
+
+    def get(self, request, format=None):
+        print("request hit")
+        print(request.user)
+        
+        if request.auth:
+            print("authentication success")
+        return Response(status=200)

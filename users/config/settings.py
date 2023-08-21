@@ -152,8 +152,33 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# custom user authentication override
+
+
+
+
+"///////// AUTHENTICATION MODELS //////////////"
+"""
+we have two clasess normal user and gov_user
+all the authentication methods and middleware are looking in auth_user model defaultly
+it means every request is checking against normal user table,
+
+so se need a different authe mechanism to authenticate and check the gov user
+so we set AUTH_USER_MODEL_GOV  as gov user table below. 
+we have many authentication functions overrided which is checking against AUTH_USER_MODEL_GOV table data
+"""
+
+# custom normal user authentication override
 AUTH_USER_MODEL = "api.CustomUser"
+
+# custom goverment user authentication override
+# this model is required to authenticate the gov users
+# authentication classes are overrided and calling this to check the user in gou user table
+AUTH_USER_MODEL_GOV = "api.Gov_body_user"
+
+
+
+
+
 
 # cors confiq
 CORS_ALLOW_ALL_ORIGINS = True
