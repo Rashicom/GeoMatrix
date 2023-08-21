@@ -11,7 +11,8 @@ from .serializers import (
 
     governmental_body_user_serializer,
     gov_body_Address_serializer,
-    gov_body_wallet_serializer
+    gov_body_wallet_serializer,
+    GovuserLoginSerializer
 
 )
 from django.contrib.auth.hashers import make_password
@@ -22,6 +23,7 @@ from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import transaction
 from .helper import UniqueGovUser
+from .Customauthentication import authenticate_govuser
 # Create your views here.
 
 
@@ -465,9 +467,58 @@ class gov_body_signup(APIView):
             },
             status=201
         )
+      
         
-        
+# login
+class GovBodylogin(APIView):
+  
+    serializer_class = GovuserLoginSerializer
+    permission_classes = [AllowAny]
 
+    def post(self, request, format=None):
+        """
+        validating the user credencials and generating access and refresh
+        jwt tocken if the user is validated otherwise return error message
+        """
+        print("login request hit")
+        # serializing data
+        seriazed_data = self.serializer_class(data=request.data)
+
+        # validating credencians, if credencials invalied error message
+        # automatically send to frond end
+        if seriazed_data.is_valid(raise_exception=True):
+  
+            # fetching credencials for validation
+            email = seriazed_data.validated_data["email"]
+            password = seriazed_data.validated_data["password"]
+
+            # authenticate func returns user instence if authenticated
+            # this is custom authenticated function writen in customauthentication.py
+            user = authenticate_govuser(email=email,password=password)
+
+            # if user is authenticated generate jwt
+            if user is not None:
+  
+                print("login success")
+                # generating jwt tocken
+                refresh = RefreshToken.for_user(user)
+                access = refresh.access_token
+
+                # returning response with access and refresh tocken
+                # refresh tocken used to generate new tocken before tockens session expired
+                return Response(
+                    {
+                        "email": email,
+                        "password": password,
+                        "access": str(access),
+                        "refresh": str(refresh),
+                    },
+                    status=201,
+                )
+
+            # if user none, wrong email or passord
+            else:
+                return Response({"details": "wrong email or password"}, status=401)
         
             
 

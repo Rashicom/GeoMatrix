@@ -72,5 +72,9 @@ class gov_body_wallet_serializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class GovuserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
+
 
 

@@ -30,6 +30,7 @@ urlpatterns = [
 
     # admin routs
     path("gov_body_signup/", views.gov_body_signup.as_view()),
+    path("Gov_login/", views.GovBodylogin.as_view()),
 
 
 
