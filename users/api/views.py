@@ -604,9 +604,6 @@ class GovnewTransaction(APIView):
 
             try:
                 # creatiing wallet transaction and return response
-                # some how the wallet_transaction_status is set to false for only gov users
-                # problom need to be solved
-                # so we are explicitly set to true
                 new_transaction = serializer.save(wallet=wallet_instance)
 
             except Exception as e:
@@ -615,9 +612,6 @@ class GovnewTransaction(APIView):
 
             # serializing the new transaction and return back to user
             # here a new serializer is used to return all data, class serializer only return type and amount
-            # transaction_serializer = Wallet_transactions_table_serializer(
-            #     new_transaction
-            # )
             return Response(serializer.data, status=201)
 
 

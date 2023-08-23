@@ -152,7 +152,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
+CELERY_IMPORTS = ['api.producer']
 
 
 
@@ -174,10 +174,6 @@ AUTH_USER_MODEL = "api.CustomUser"
 # this model is required to authenticate the gov users
 # authentication classes are overrided and calling this to check the user in gou user table
 AUTH_USER_MODEL_GOV = "api.Gov_body_user"
-
-
-
-
 
 
 # cors confiq

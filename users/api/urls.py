@@ -25,7 +25,6 @@ urlpatterns = [
     path("get_wallet_balance/", views.get_wallet_balance.as_view()),
     path("get_wallet_transaction/", views.get_wallet_transaction.as_view()),
     path("transaction_history/", views.transaction_history.as_view()),
-    path("gov_body_signup/", views.gov_body_signup.as_view()),
 
 
     # admin routs
