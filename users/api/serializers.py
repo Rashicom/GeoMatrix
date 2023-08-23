@@ -1,4 +1,4 @@
-from .models import CustomUser, Address, Wallet_transaction, Gov_body_user, Gov_body_Address,Gov_body_wallet
+from .models import CustomUser, Address, Wallet_transaction, Gov_body_user, Gov_body_Address,Gov_body_wallet, Gov_body_wallet_transaction
 from rest_framework import serializers
 
 
@@ -78,3 +78,20 @@ class GovuserLoginSerializer(serializers.Serializer):
 
 
 
+class GovwalletTransactionSerializer(serializers.ModelSerializer):
+    
+    # exclude wallet from serailizer check is_valide()
+    wallet = serializers.CharField(required=False)
+    
+    # serious issue: bool values set to false when save serializer even if se set defualt = true in model
+    # to override the issue set the default as true explicitly in here
+    # issue need to be solved
+    wallet_transaction_status = serializers.BooleanField(default=True)
+    class Meta:
+        model = Gov_body_wallet_transaction
+        # fields = ["wallet_transaction_type", "wallet_transaction_amount","wallet"]
+        fields = '__all__'
+        
+
+        
+        

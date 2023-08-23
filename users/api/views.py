@@ -12,7 +12,8 @@ from .serializers import (
     governmental_body_user_serializer,
     gov_body_Address_serializer,
     gov_body_wallet_serializer,
-    GovuserLoginSerializer
+    GovuserLoginSerializer,
+    GovwalletTransactionSerializer,
 
 )
 from django.contrib.auth.hashers import make_password
@@ -522,7 +523,7 @@ class GovBodylogin(APIView):
         
             
 
-# get address
+# get wallet balance
 class GetGovwalletbalance(APIView):
     authentication_classes = [GovuserJwtAuthentication]
     permission_classes = [IsAuthenticated]
@@ -538,3 +539,81 @@ class GetGovwalletbalance(APIView):
             },
             status=200
         )
+
+
+# new transaction
+class GovnewTransaction(APIView):
+
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GovwalletTransactionSerializer
+    wallet_model = Gov_body_wallet
+
+    def post(self, request, format=None):
+        """
+        fetching user and amound to be paid from the request and update
+        """
+
+        # fetching data and get wallet instence to update wattet transaction
+        user = request.user
+        wallet_instance = self.wallet_model.objects.get(Gov_body=user)
+
+        # serializing data
+        serializer = self.serializer_class(data=request.data)
+
+        # returning serializing error implicitly to the frond end.
+        if serializer.is_valid(raise_exception=True):
+            """
+            fetch the data from the serailized data and update the data base
+            then serializing the data and return back to user
+
+            before updating the database we have to check the transaction type,
+            and check the balance in the wallet to make a succussfull update,
+            otherwise it returns a insufficiant balance warning
+            """
+
+            wallet_transaction_type = serializer.validated_data.get(
+                "wallet_transaction_type"
+            )
+            wallet_transaction_amount = serializer.validated_data.get(
+                "wallet_transaction_amount"
+            )
+
+            # buissiness logic for wallet balence cross match and upation
+            # if the type is withdrowel
+            if wallet_transaction_type == "WITHDRAWAL":
+                """
+                only withdrow the money from wallet if there are sufficient balance in the account
+                otherwise it returns insufficiant balance
+                """
+                if wallet_transaction_amount > wallet_instance.balance:
+                    return Response({"details": "insufficient balance"}, status=403)
+                else:
+                    wallet_instance.balance = (
+                        wallet_instance.balance - wallet_transaction_amount
+                    )
+
+            # if the type is deposit
+            elif wallet_transaction_type == "DEPOSIT":
+                wallet_instance.balance += wallet_transaction_amount
+
+            # save the wallet instence
+            wallet_instance.save()
+
+            try:
+                # creatiing wallet transaction and return response
+                # some how the wallet_transaction_status is set to false for only gov users
+                # problom need to be solved
+                # so we are explicitly set to true
+                new_transaction = serializer.save(wallet=wallet_instance)
+
+            except Exception as e:
+                print(e)
+                return Response({"details": "something went wrong"}, status=403)
+
+            # serializing the new transaction and return back to user
+            # here a new serializer is used to return all data, class serializer only return type and amount
+            # transaction_serializer = Wallet_transactions_table_serializer(
+            #     new_transaction
+            # )
+            return Response(serializer.data, status=201)
