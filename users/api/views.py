@@ -18,7 +18,7 @@ from .serializers import (
 )
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Wallet, Address, Wallet_transaction, Gov_body_wallet, Gov_body_user
+from .models import Wallet, Address, Wallet_transaction, Gov_body_wallet, Gov_body_user, Gov_body_wallet_transaction
 from datetime import date
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -354,7 +354,7 @@ class get_wallet_transaction(APIView):
 
 
 # transaction history
-class trasaction_history(APIView):
+class transaction_history(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = Wallet_transactions_table_serializer
@@ -547,6 +547,8 @@ class GovnewTransaction(APIView):
     authentication_classes = [GovuserJwtAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = GovwalletTransactionSerializer
+
+    # wallet model used int this class
     wallet_model = Gov_body_wallet
 
     def post(self, request, format=None):
@@ -617,3 +619,49 @@ class GovnewTransaction(APIView):
             #     new_transaction
             # )
             return Response(serializer.data, status=201)
+
+
+
+# transaction history
+class GovTransactionHistory(APIView):
+
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GovwalletTransactionSerializer
+
+    # wallet model used int this class
+    wallet_model = Gov_body_wallet
+
+    def get(self, request, format=None):
+        """
+        filtering the users transaction history by date
+        date_from is set to today date if date_from is not provided
+        and to date set to None
+        """
+
+        # fetching data from params
+        date_from = request.query_params.get("date_from", None)
+        date_to = request.query_params.get("date_to", date.today())
+
+        # wallet instance to filter
+        user = request.user
+        wallet_instance = self.wallet_model.objects.get(Gov_body=user)
+
+        # filtering logic
+        if date_from == None:
+            transactions = Q(wallet_id=wallet_instance) & Q(
+                wallet_transaction_date__lte=date_to
+            )
+
+        else:
+            transactions = (
+                Q(wallet_id=wallet_instance)
+                & Q(wallet_transaction_date__lte=date_to)
+                & Q(wallet_transaction_date__gte=date_from)
+            )
+        
+        # filtering wallet transaction history and serializing data
+        transactions = Gov_body_wallet_transaction.objects.filter(transactions)
+        serialized_data = self.serializer_class(transactions, many=True)
+
+        return Response(serialized_data.data, status=200)

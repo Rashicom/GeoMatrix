@@ -24,7 +24,7 @@ urlpatterns = [
     path("new_transaction/", views.new_transaction.as_view()),
     path("get_wallet_balance/", views.get_wallet_balance.as_view()),
     path("get_wallet_transaction/", views.get_wallet_transaction.as_view()),
-    path("trasaction_history/", views.trasaction_history.as_view()),
+    path("transaction_history/", views.transaction_history.as_view()),
     path("gov_body_signup/", views.gov_body_signup.as_view()),
 
 
@@ -33,6 +33,7 @@ urlpatterns = [
     path("gov_login/", views.GovBodylogin.as_view()),
     path("get_govwallet_balance/", views.GetGovwalletbalance.as_view()),
     path("gov_transaction/", views.GovnewTransaction.as_view()),
+    path("gov_transaction_history/", views.GovTransactionHistory.as_view()),
 
 
 ]
