@@ -83,7 +83,7 @@ class GovwalletTransactionSerializer(serializers.ModelSerializer):
     # exclude wallet from serailizer check is_valide()
     wallet = serializers.CharField(required=False)
     
-    # serious issue: bool values set to false when save serializer even if se set defualt = true in model
+    # serious issue fro gov users only: bool values set to false when save serializer even if se set defualt = true in model
     # to override the issue set the default as true explicitly in here
     # issue need to be solved
     wallet_transaction_status = serializers.BooleanField(default=True)
