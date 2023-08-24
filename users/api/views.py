@@ -26,6 +26,7 @@ from django.db import transaction
 from .helper import UniqueGovUser
 from .Customauthentication import authenticate_govuser
 from .Customauthentication import GovuserJwtAuthentication
+from .producer import publish, send
 # Create your views here.
 
 
@@ -659,3 +660,15 @@ class GovTransactionHistory(APIView):
         serialized_data = self.serializer_class(transactions, many=True)
 
         return Response(serialized_data.data, status=200)
+
+
+
+# tcp connection for microservices
+class test(APIView):
+
+    permission_classes = [AllowAny]
+    def get(self,request, format=None):
+        send()
+        publish()
+
+        return Response({"details":"ok"}, status=200)

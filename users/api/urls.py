@@ -34,6 +34,8 @@ urlpatterns = [
     path("gov_transaction/", views.GovnewTransaction.as_view()),
     path("gov_transaction_history/", views.GovTransactionHistory.as_view()),
 
+    path("test/", views.test.as_view()),
+    
 
 ]
 

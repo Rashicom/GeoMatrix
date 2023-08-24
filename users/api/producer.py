@@ -1,8 +1,14 @@
-from __future__ import absolute_import, unicode_literals
+import pika
 
-from celery import shared_task
+# establishing connection with rabitmq server
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
 
-@shared_task
-def add(a,b):
-    return a*b
+def publish():
+    print("publishing..")
+    channel.basic_publish(exchange='',routing_key='admin',body='hello')
+
+def send():
+    print("sending..")
+    channel.basic_publish(exchange='',routing_key='email',body='sended')
 

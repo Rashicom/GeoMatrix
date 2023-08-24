@@ -8,7 +8,7 @@ from django.apps import apps
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 # creating an instance for celery   
-app = Celery('users')
+app = Celery('config')
 
 # loading tasks from all registered apps
 app.config_from_object('django.conf:settings', namespace='CELERY')
