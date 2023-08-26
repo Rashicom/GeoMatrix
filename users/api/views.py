@@ -26,7 +26,7 @@ from django.db import transaction
 from .helper import UniqueGovUser
 from .Customauthentication import authenticate_govuser
 from .Customauthentication import GovuserJwtAuthentication
-from .producer import publish, send
+from .producer import signup_publish
 # Create your views here.
 
 
@@ -668,7 +668,7 @@ class test(APIView):
 
     permission_classes = [AllowAny]
     def get(self,request, format=None):
-        send()
-        publish()
+        
+        signup_publish()
 
         return Response({"details":"ok"}, status=200)
