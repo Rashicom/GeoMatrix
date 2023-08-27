@@ -61,6 +61,19 @@ class signup(APIView):
             new_wallet = Wallet(user=user)
             new_wallet.save()
 
+            # publishing into the signup queue
+            data = {
+                "email": serializer.validated_data.get("email"),
+                "adhar_id": serializer.validated_data.get("adhar_id"),
+                "contact_number": serializer.validated_data.get("contact_number")
+            }
+            # publishing
+            try:
+                signup_publish(data)
+            except Exception as e:
+                print(e)
+                return Response({"development_error":"signup cant publish the detais"}, status=500)
+                
             # removing password from response and send response
             response_data.pop("password")
             print("user created")
