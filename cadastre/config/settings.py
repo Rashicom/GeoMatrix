@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt',
+    'django.contrib.gis',
     'api',
     'drf_spectacular',
     'corsheaders',
@@ -55,6 +57,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+SIMPLE_JWT = {
+    "SIGNING_KEY": "5ahp8kseKOVB_w",
+
+}
 
 ROOT_URLCONF = 'config.urls'
 

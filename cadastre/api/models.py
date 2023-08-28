@@ -2,7 +2,7 @@
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.utils.translation import gettext_lazy as _
-
+from django.contrib.gis.geos import point
 
 
 # normal users
@@ -11,7 +11,7 @@ class NormalUser(models.Model):
     email = models.EmailField(unique=True)
     adhar_id = models.CharField(max_length=10, unique=True)
     contact_number = models.CharField(max_length=12)
-
+    
 
 
 class Land(models.Model):
@@ -22,7 +22,7 @@ class Land(models.Model):
     user = models.ForeignKey(NormalUser, on_delete=models.PROTECT)
     
     # self join to find out which land is splited to form the new land
-    parent_land_id = models.ForeignKey('self', on_delete=models.PROTECT)
+    parent_land_id = models.ForeignKey('self', on_delete=models.PROTECT, blank=True, null=True)
     
     locality = models.CharField(max_length=50)
     district = models.CharField(max_length=50)
