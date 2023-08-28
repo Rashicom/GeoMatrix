@@ -54,7 +54,7 @@ class Wallet_transactions_table_serializer(serializers.ModelSerializer):
 "//////////////////////////  Gov_body_user serializers  ////////////////////////////////"
 
 # for creating admin user
-class governmental_body_user_serializer(serializers.ModelSerializer):   
+class government_body_user_serializer(serializers.ModelSerializer):   
     class Meta:
         model = Gov_body_user
         fields = '__all__'

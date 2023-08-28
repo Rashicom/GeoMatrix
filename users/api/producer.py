@@ -5,6 +5,7 @@ import json
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
+
 def signup_publish(data):
     """
     this fuction taking an argument data which consist nesessory details included for 
@@ -18,3 +19,12 @@ def signup_publish(data):
     print("publishing signup data..")
     channel.basic_publish(exchange='',routing_key='signup',body=json.dumps(data))
 
+
+def gov_user_signup_publish(data):
+    """
+    publishing gov uer signup details
+    """
+
+    print("publishing gov user signup")
+    channel.basic_publish(exchange='',routing_key='gov_user_signup',body=json.dumps(data))
+    

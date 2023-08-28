@@ -97,7 +97,7 @@ class TaxInvoicePayment(models.Model):
 
 
 # gov user
-class Gov_body_user(models.Model):
+class GovbodyUser(models.Model):
     
     # extra fields
     class Role(models.TextChoices):
@@ -118,7 +118,7 @@ class Gov_body_user(models.Model):
 # referencing user one to one reltion
 class Gov_body_Address(models.Model):
     address_id = models.AutoField(primary_key=True)
-    gov_body = models.OneToOneField(Gov_body_user, on_delete=models.CASCADE)
+    gov_body = models.OneToOneField(GovbodyUser, on_delete=models.CASCADE)
     locality = models.CharField(max_length=20)
     district = models.CharField(max_length=20)
     state = models.CharField(max_length=20)

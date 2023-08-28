@@ -9,7 +9,7 @@ from .serializers import (
     Wallet_transaction_serializer,
     Wallet_transactions_table_serializer,
 
-    governmental_body_user_serializer,
+    government_body_user_serializer,
     gov_body_Address_serializer,
     gov_body_wallet_serializer,
     GovuserLoginSerializer,
@@ -26,7 +26,7 @@ from django.db import transaction
 from .helper import UniqueGovUser
 from .Customauthentication import authenticate_govuser
 from .Customauthentication import GovuserJwtAuthentication
-from .producer import signup_publish
+from .producer import signup_publish, gov_user_signup_publish
 # Create your views here.
 
 
@@ -414,7 +414,7 @@ class transaction_history(APIView):
 
 class gov_body_signup(APIView):
     permission_classes = [AllowAny]
-    serializer_class = governmental_body_user_serializer
+    serializer_class = government_body_user_serializer
 
     def post(self, request, format=None):
         """
@@ -474,6 +474,23 @@ class gov_body_signup(APIView):
         except Exception as e:
             print(e)
             return Response({"details":"somthing went wrong"},status=500)
+
+        # publishing signup
+        user_puplish = gov_body_serializer.validated_data
+        user_puplish.pop("profile_photo")
+        data = {
+            "user":user_puplish,
+            "address":gov_body_address_serializer.validated_data
+            # "role":gov_body_serializer.validated_data.get("role"),
+            # "email":gov_body_serializer.validated_data.get("email"),
+            # "gov_body_name":gov_body_serializer.validated_data.get("gov_body_name"),
+            # "contact_number":gov_body_serializer.validated_data.get("contact_number"),
+            # "locality":gov_body_Address_serializer.validated_data.get("locality"),
+            # "district":gov_body_Address_serializer.validated_data.get("district"),
+            # "state":gov_body_address_serializer.validated_data.get("state"),
+            # "country":gov_body_Address_serializer.validated_data.get("country"),
+        }
+        gov_user_signup_publish(data)
 
         # returning all the created data. user, address and wallet details
         return Response(
@@ -682,6 +699,11 @@ class test(APIView):
     permission_classes = [AllowAny]
     def get(self,request, format=None):
         
-        signup_publish()
+        data = {
+                "email": "siyad",
+                "adhar_id": "9846524845",
+                "contact_number": "9846142575"
+            }
+        signup_publish(data)
 
         return Response({"details":"ok"}, status=200)
