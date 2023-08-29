@@ -67,12 +67,13 @@ class LandGeography(models.Model):
         RANGE = "RANGE"
         BARREN = "BARREN"
 
+
     land = models.ForeignKey(Land, on_delete=models.CASCADE)
     land_type = models.CharField(max_length=20, choices=Choices.choices)
     location_coordinate = models.PointField()
     boundary_polygon = models.PolygonField()
     # slop
-    area = models.IntegerField()
+    area = models.FloatField()
 
 
 # land tax invoice

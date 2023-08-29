@@ -1,0 +1,15 @@
+{
+    "locality": "kochi",
+    "email":"trivandrum@gmail.com",
+    "district":"eranakulam",
+    "state":"kerala",
+    "zip_code":"452575",
+    "land_type":"COMMERCIAL",
+    "boundary_polygon":[
+       [-74.006, 40.7128],
+       [-73.996, 40.7128],
+       [-73.996, 40.7028],
+       [-74.006, 40.7028],
+       [-74.006, 40.7128]
+       ]
+}

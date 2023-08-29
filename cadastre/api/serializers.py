@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NormalUser, GovbodyUser, Gov_body_Address
+from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry
 
 # fornal users serializer
 class NormalUserSerializer(serializers.ModelSerializer):
@@ -21,3 +21,44 @@ class GovbodyUserAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gov_body_Address
         fields = '__all__'
+
+
+class LandSerializer(serializers.ModelSerializer):
+
+    # excluding forign key from validaion
+    user = serializers.CharField(required=False)
+
+    class Meta:
+        model = Land
+        fields = '__all__'
+
+
+class LandOwnershipRegistrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandOwnershipRegistry
+        fields = '__all__'
+
+
+class LandGeographySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandGeography
+        fields = '__all__'
+
+
+# land registration serializer
+class LandRegistraionSerailizer(serializers.Serializer):
+    # for identify for which user land belongs to
+    email = serializers.EmailField(required=True)
+
+    # updating land table
+    locality = serializers.CharField(required=True)
+    district = serializers.CharField(required=True)
+    state = serializers.CharField(required=True)
+    zip_code = serializers.CharField(required=True)
+
+    # updating landgeography
+    # other fields need to becalculated just befor saving
+    land_type = serializers.ChoiceField(choices=LandGeography.Choices.choices)
+    boundary_polygon = serializers.ListField()
+    
+
