@@ -31,6 +31,8 @@ class LandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Land
         fields = '__all__'
+        depth = 1
+
 
 
 class LandOwnershipRegistrySerializer(serializers.ModelSerializer):
@@ -38,10 +40,14 @@ class LandOwnershipRegistrySerializer(serializers.ModelSerializer):
         model = LandOwnershipRegistry
         fields = '__all__'
 
+
+
 class ChangeOwnershipRegistrySerializer(serializers.Serializer):
-    owner = serializers.CharField(required=True)
-    new_owner = serializers.CharField(required=True)
-    
+    owner_email = serializers.EmailField()
+    new_owner_email = serializers.EmailField()
+    land_number = serializers.IntegerField()
+
+
 
 class LandGeographySerializer(serializers.ModelSerializer):
     class Meta:

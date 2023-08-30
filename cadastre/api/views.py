@@ -5,8 +5,8 @@ from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Land, NormalUser, LandGeography
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer
+from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -139,10 +139,12 @@ class GetLand(APIView):
         # fetching data according to the parameter.
         # if land_no provided, return specific land. if lan_no not provided, return all lands
         if land_number:
-            print("land numver", land_number)
+            
             land_record = LandGeography.objects.get(land__land_number = land_number)
             serializer = self.serializer_class(land_record)
+        
         else:
+
             land_record = LandGeography.objects.all()
             serializer = self.serializer_class(land_record,many=True)
         
@@ -153,13 +155,58 @@ class GetLand(APIView):
         return Response(serializer.data,status=200)
 
 
+
+# change land ownership
 class ChangeLandOwnership(APIView):
 
-    serializer = LandOwnershipRegistrySerializer
+    serializer_class = ChangeOwnershipRegistrySerializer
 
     def post(self, request, format=None):
+        """
+        accepts enough information to change the ownership of a land to new owner
+        change owner field in the land tabele and add new owner to the registry to keep track the registrations
+        """
         
-        pass
+        # serializing and vaidating data
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # get new user and land instance instance
+        try:
+            new_user_instance = NormalUser.objects.get(email=serializer.validated_data.get("new_owner_email"))
+        except Exception as e:
+            print(e)
+            return Response({"details":"user not found"}, status=404)
+        
+        try:
+            land_instance = Land.objects.get(land_number=serializer.validated_data.get("land_number"))
+        except Exception as e:
+            print(e)
+            return Response({"details":"land not found"}, status=404)
+
+            
+        # update tables
+        try:
+            with transaction.atomic():
+
+                # updating land table user to new owner user
+                land_instance.user = new_user_instance
+                land_instance.save()
+
+                # add new user to land registry to keeptrck of land registration
+                LandOwnershipRegistry.objects.create(user=new_user_instance, land=land_instance)
+
+        except Exception as e:
+            print(e)
+            return Response({"details":"somthing went wrong"}, status=500)
+
+        # return new land detals
+        land_details = {
+            "land_number":land_instance.land_number,
+            "new_user":serializer.validated_data.get("new_owner_email"),
+        }
+        return Response(land_details, status=201)
+
 
 
 """/////////////////GOV USER///////////////////////"""

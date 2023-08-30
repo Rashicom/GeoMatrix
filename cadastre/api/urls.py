@@ -10,9 +10,10 @@ urlpatterns = [
     
     path('register_land/', views.RegisterLand.as_view()),
     path('get_land/', views.GetLand.as_view()),
+    path('change_land_ownership/', views.ChangeLandOwnership.as_view()),
 
     path('get_user_land/',views.GetUserLand.as_view()),
-    
+
     
 
 ]
