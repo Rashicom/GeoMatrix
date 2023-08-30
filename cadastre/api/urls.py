@@ -9,7 +9,10 @@ urlpatterns = [
     path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
     path('register_land/', views.RegisterLand.as_view()),
-
     path('get_land/', views.GetLand.as_view()),
+
+    path('get_user_land/',views.GetUserLand.as_view()),
     
+    
+
 ]

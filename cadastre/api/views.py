@@ -13,6 +13,11 @@ from django.db import transaction
 from geopy.geocoders import Nominatim
 from django.contrib.gis.geos import GEOSGeometry
 
+
+
+"""/////////////////GOV USER///////////////////////"""
+
+
 # regisering a new land
 class RegisterLand(APIView):
     authentication_classes = [JWTStatelessUserAuthentication]
@@ -121,6 +126,7 @@ class RegisterLand(APIView):
 class GetLand(APIView):
 
     serializer_class = LandGeographySerializer
+    # custom admin auth must be given here
     def get(self, request, format=None):
         """
         this is accepting a parameter land_id. and return back the perticular land info
@@ -130,15 +136,39 @@ class GetLand(APIView):
         # get parameter
         land_id = request.query_params.get('land_id')
         
+        # fetching data according to the parameter.
+        # if land_id provided, return specific land. if lan_id not provided, return all lands
         if land_id:
-            land_record = LandGeography.objects.filter(land_id = land_id)
+            land_record = LandGeography.objects.get(land_id = land_id)
+            serializer = self.serializer_class(land_record)
         else:
             land_record = LandGeography.objects.all()
+            serializer = self.serializer_class(land_record,many=True)
         
         # usign GEOSGeometry we can change the cordinates to many format
         # now row queryset from database returned
         # print(GEOSGeometry(lnd).geojson)
-            
-        serializer = self.serializer_class(land_record,many=True)
 
         return Response(serializer.data,status=200)
+
+
+"""/////////////////GOV USER///////////////////////"""
+
+class GetUserLand(APIView):
+    serializer_class = LandGeographySerializer
+
+    def get(self, request, format=None):
+        
+        # get email from parameter
+        email = request.query_params.get('email')
+        if not email:
+            return Response({"email":"this paremeter is required"})
+        
+        # get user instance
+        user = NormalUser.objects.get(email=email)
+        
+        # fetchind data and serialize it
+        user_land_list = LandGeography.objects.filter(land__user = user)
+        serializer = self.serializer_class(user_land_list, many=True)
+
+        return Response(serializer.data, status=200)

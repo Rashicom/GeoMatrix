@@ -43,6 +43,7 @@ class LandGeographySerializer(serializers.ModelSerializer):
     class Meta:
         model = LandGeography
         fields = '__all__'
+        depth = 1
 
 
 # land registration serializer
