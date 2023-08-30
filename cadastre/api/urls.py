@@ -10,5 +10,6 @@ urlpatterns = [
     
     path('register_land/', views.RegisterLand.as_view()),
 
+    path('get_land/', views.GetLand.as_view()),
     
 ]

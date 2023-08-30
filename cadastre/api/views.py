@@ -5,12 +5,13 @@ from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Land, NormalUser
+from .models import Land, NormalUser, LandGeography
 from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
-
+from geopy.geocoders import Nominatim
+from django.contrib.gis.geos import GEOSGeometry
 
 # regisering a new land
 class RegisterLand(APIView):
@@ -114,3 +115,30 @@ class RegisterLand(APIView):
         print(location_coordinate)
         
         return Response(serializer.data,status=201)
+
+    
+# get land by land_id 
+class GetLand(APIView):
+
+    serializer_class = LandGeographySerializer
+    def get(self, request, format=None):
+        """
+        this is accepting a parameter land_id. and return back the perticular land info
+        if the land_id not provided all the land info returned
+        """
+    
+        # get parameter
+        land_id = request.query_params.get('land_id')
+        
+        if land_id:
+            land_record = LandGeography.objects.filter(land_id = land_id)
+        else:
+            land_record = LandGeography.objects.all()
+        
+        # usign GEOSGeometry we can change the cordinates to many format
+        # now row queryset from database returned
+        # print(GEOSGeometry(lnd).geojson)
+            
+        serializer = self.serializer_class(land_record,many=True)
+
+        return Response(serializer.data,status=200)
