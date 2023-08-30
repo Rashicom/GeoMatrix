@@ -134,12 +134,13 @@ class GetLand(APIView):
         """
     
         # get parameter
-        land_id = request.query_params.get('land_id')
+        land_number = request.query_params.get('land_number')
         
         # fetching data according to the parameter.
-        # if land_id provided, return specific land. if lan_id not provided, return all lands
-        if land_id:
-            land_record = LandGeography.objects.get(land_id = land_id)
+        # if land_no provided, return specific land. if lan_no not provided, return all lands
+        if land_number:
+            print("land numver", land_number)
+            land_record = LandGeography.objects.get(land__land_number = land_number)
             serializer = self.serializer_class(land_record)
         else:
             land_record = LandGeography.objects.all()
@@ -150,6 +151,15 @@ class GetLand(APIView):
         # print(GEOSGeometry(lnd).geojson)
 
         return Response(serializer.data,status=200)
+
+
+class ChangeLandOwnership(APIView):
+
+    serializer = LandOwnershipRegistrySerializer
+
+    def post(self, request, format=None):
+        
+        pass
 
 
 """/////////////////GOV USER///////////////////////"""

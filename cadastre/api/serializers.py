@@ -38,6 +38,10 @@ class LandOwnershipRegistrySerializer(serializers.ModelSerializer):
         model = LandOwnershipRegistry
         fields = '__all__'
 
+class ChangeOwnershipRegistrySerializer(serializers.Serializer):
+    owner = serializers.CharField(required=True)
+    new_owner = serializers.CharField(required=True)
+    
 
 class LandGeographySerializer(serializers.ModelSerializer):
     class Meta:
