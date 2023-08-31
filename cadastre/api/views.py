@@ -76,9 +76,22 @@ class RegisterLand(APIView):
         # generate a centroid for the poligon for update the land location_cordinates of the LangGeography table
         location_coordinate = boundary_polygon.centroid
 
-        # calculating area enclosed by the polygon
-        # this area is in squre degree
-        area = boundary_polygon.area
+        # AREA CALCULATION
+        # specify a named ellipsoid(earth shape)
+        geod = Geod(ellps="WGS84")
+
+        # landpoligon.wkt returns wkt(well known test) string like format
+        # wkt.load is converting the string representation of polygon in to polygon
+        poly = wkt.loads(boundary_polygon.wkt)
+
+        # geometry_area_perimeter returning two valurs area in m^2 and the perimeter
+        # we take the area by specifing [0]
+        # area my be +ve or -ve , depending on clockwise or anticlockwise direction we drow the polygon
+        # to get posive area always we take the abs value
+        area = abs(geod.geometry_area_perimeter(poly)[0])
+
+        # taking only 2 decimal value
+        area = round(area, 2)
 
         # update tables
         try:
@@ -107,7 +120,7 @@ class RegisterLand(APIView):
 
                 land_geography_serializer = LandGeographySerializer(data=land_data)
                 land_geography_serializer.is_valid(raise_exception=True)
-                land_geography_serializer.save()
+                land_geography_serializer.save(land=land_instance)
 
         except Exception as e:
             print(e)
@@ -391,7 +404,11 @@ class GetUserLand(APIView):
             return Response({"email":"this paremeter is required"})
         
         # get user instance
-        user = NormalUser.objects.get(email=email)
+        try:
+            user = NormalUser.objects.get(email=email)
+        except Exception as e:
+            print(e)
+            return Response({"details":"user not found"},status=401)
         
         # fetchind data and serialize it
         user_land_list = LandGeography.objects.filter(land__user=user, land__is_active=True)
