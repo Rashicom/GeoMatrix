@@ -13,7 +13,9 @@ urlpatterns = [
     path('change_land_ownership/', views.ChangeLandOwnership.as_view()),
 
     path('get_user_land/',views.GetUserLand.as_view()),
-
+    path('bulk_register_land/',views.BulkRegisterLand.as_view()),
+    path('test/',views.test.as_view()),
+    
     
 
 ]

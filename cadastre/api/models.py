@@ -93,6 +93,8 @@ class TaxInvoicePayment(models.Model):
     payed_amount = models.IntegerField()
     payment_date = models.DateField(auto_now_add=True)
 
+
+
     "//////////////////////////  Gov_body_user  ////////////////////////////////"
 
 

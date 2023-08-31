@@ -73,3 +73,10 @@ class LandRegistraionSerailizer(serializers.Serializer):
     boundary_polygon = serializers.ListField()
     
 
+
+class LandDataResponseSerializer(serializers.Serializer):
+    land = serializers.IntegerField()
+    land_type = serializers.CharField()
+    location_coordinate = serializers.ListField()
+    area = serializers.FloatField()
+    

@@ -1,18 +1,19 @@
-from django.shortcuts import render
-from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
 from geopy.geocoders import Nominatim
 from django.contrib.gis.geos import GEOSGeometry
-
+import pandas as pd
+import json
+from pyproj import Geod
+from shapely import wkt
 
 
 """/////////////////GOV USER///////////////////////"""
@@ -88,7 +89,6 @@ class RegisterLand(APIView):
                 land_serializer.is_valid(raise_exception=True)
                 land_instance = land_serializer.save(user=user_instance)
                 print("land table updated")
-                print(land_instance)
                 
                 # update land registry
                 land_ownership_serializer = LandOwnershipRegistrySerializer(data={"user":user_instance.id, "land":land_instance.land_number})
@@ -121,38 +121,167 @@ class RegisterLand(APIView):
         
         return Response(serializer.data,status=201)
 
-    
-# get land by land_id 
-class GetLand(APIView):
 
-    serializer_class = LandGeographySerializer
-    # custom admin auth must be given here
-    def get(self, request, format=None):
-        """
-        this is accepting a parameter land_id. and return back the perticular land info
-        if the land_id not provided all the land info returned
-        """
+
+# land bulk registration from exl file for a perticular user
+class BulkRegisterLand(APIView):
     
-        # get parameter
-        land_number = request.query_params.get('land_number')
+    serializer_class = LandRegistraionSerailizer
+    def post(self, request, format=None):
+        """
+        fetching data from the exl file and validate all the rows before
+        updating to the data base.
+        WARNING: reading rows from the exl file and updating to data base is rise many probloms
+                 may be some rows contain fault information and the updation cancelled
+                 so we have to make sure all filds of all rows are valied before update
+        we have a some stup to follow the bulc creation
+        1- first for loop: iterate through rows and validate all rows
+        2- second for loop: iterate through rows and update to database
+        """
+
+        email = request.data.get("email")
+        user_instance = NormalUser.objects.get(email=email)
+
+        # geting the exl file
+        land_exl_file = request.FILES.get("landfile")
+
+        # if the file not found return error
+        if not land_exl_file:
+            return Response({"details":"file not provided"}, status=403)
         
-        # fetching data according to the parameter.
-        # if land_no provided, return specific land. if lan_no not provided, return all lands
-        if land_number:
+        # process the exl file usign pandas
+        reader = pd.read_excel(land_exl_file)
+        
+        # first iteration for  validating all data
+        for row in reader.itertuples():
+            """
+            creating a data object for serialize it and validate
+            return if any exception found
+            """
+
+            # TEST 1 - serialize and validate
+            data = {
+                "email": email,
+                "locality": row.locality,
+                "district": row.district,
+                "state": row.state,
+                "zip_code": row.zip_code,
+                "land_type": row.land_type,
+                "boundary_polygon": json.loads(row.boundary_polygon)
+            }
             
-            land_record = LandGeography.objects.get(land__land_number = land_number)
-            serializer = self.serializer_class(land_record)
-        
-        else:
+            serializer = self.serializer_class(data=data)
+            serializer.is_valid(raise_exception=True)
 
-            land_record = LandGeography.objects.all()
-            serializer = self.serializer_class(land_record,many=True)
-        
-        # usign GEOSGeometry we can change the cordinates to many format
-        # now row queryset from database returned
-        # print(GEOSGeometry(lnd).geojson)
 
-        return Response(serializer.data,status=200)
+            # TEST 2 - making poligon to test cordinates are following polygon rules
+            boundery_coordinates = data.get('boundary_polygon')
+            boundery_coordinates.append(boundery_coordinates[0])
+            
+            try:
+                land_poligon = Polygon(boundery_coordinates,srid = 4326)
+                print("polygon DONE")
+            except Exception as e:
+                print(e)
+                return Response({"details":"Polygon creation filed. please check the coordinates", "failed_row":row.Index+1, "coordinates":row.boundary_polygon},status=422)
+            
+            # TEST 3 - address and coordinates cross match using geopy
+            # test pending
+
+            # TEST 4 - poligon overlaping check
+            # test pending
+        
+        print("PRIMARY VALIDATION FILE CKECK COMPLETED SUCCESSFULLY")
+
+        # every updation loop data is appended to the response data to return data back to the user
+        response_data = []
+
+        # after a successful validation the file is readyu to update
+        # update to database
+        for row in reader.itertuples():
+
+            # create a data object for each row
+            data = {
+                "email": email,
+                "locality": row.locality,
+                "district": row.district,
+                "state": row.state,
+                "zip_code": row.zip_code,
+                "land_type": row.land_type,
+                "boundary_polygon": json.loads(row.boundary_polygon)
+            }
+
+            # make closed coordinates to create polygon
+            boundery_coordinates = data.get('boundary_polygon')
+            boundery_coordinates.append(boundery_coordinates[0])
+
+            # creat poligon
+            land_poligon = Polygon(boundery_coordinates,srid = 4326)
+
+            # generate a centroid for the poligon for update the land location_cordinates of the LangGeography table
+            location_coordinate = land_poligon.centroid
+
+            # calculating area enclosed by the polygon
+            # this area is in squre degree, so we have to find the area in sqr meter
+            
+            # AREA CALCULATION
+            # specify a named ellipsoid(earth shape)
+            geod = Geod(ellps="WGS84")
+
+            # landpoligon.wkt returns wkt(well known test) string like format
+            # wkt.load is converting the string representation of polygon in to polygon
+            poly = wkt.loads(land_poligon.wkt)
+            
+            # geometry_area_perimeter returning two valurs area in m^2 and the perimeter
+            # we take the area by specifing [0]
+            # area my be +ve or -ve , depending on clockwise or anticlockwise direction we drow the polygon
+            # to get posive area always we take the abs value
+            area = abs(geod.geometry_area_perimeter(poly)[0])
+
+            # taking only 2 decimal value
+            area = round(area, 2)
+
+            print("area",area)
+            # table updation
+            try:
+                with transaction.atomic():
+
+                    # updating land table
+                    land_serializer = LandSerializer(data=data)
+                    land_serializer.is_valid(raise_exception=True)
+                    land_instance = land_serializer.save(user=user_instance)
+                    print("land table updated")
+
+                    # update land registry
+                    land_ownership_serializer = LandOwnershipRegistrySerializer(data={"user":user_instance.id, "land":land_instance.land_number})
+                    land_ownership_serializer.is_valid(raise_exception=True)
+                    land_ownership_serializer.save()
+                    print("land ownership table updated")
+
+                    # save land geography table
+                    land_data = {
+                        "land":land_instance.land_number,
+                        "land_type":row.land_type,
+                        "location_coordinate":location_coordinate,
+                        "boundary_polygon":land_poligon,
+                        "area":area
+                    }
+
+                    land_geography_serializer = LandGeographySerializer(data=land_data)
+                    land_geography_serializer.is_valid(raise_exception=True)
+                    land_geography_serializer.save(land=land_instance)
+
+            except Exception as e:
+                print(e)
+                return Response({"detailes":"database updation filed"}, status=500)
+
+            # creating response data object and append to to response
+            response_data.append(land_data)
+
+        # serializing response data and return
+        response_serializer = LandDataResponseSerializer(response_data)
+        return Response(response_serializer.data,status=200)
+
 
 
 
@@ -209,6 +338,42 @@ class ChangeLandOwnership(APIView):
 
 
 
+
+# get land by land_id 
+class GetLand(APIView):
+
+    serializer_class = LandGeographySerializer
+    # custom admin auth must be given here
+    def get(self, request, format=None):
+        """
+        this is accepting a parameter land_id. and return back the perticular land info
+        if the land_id not provided all the land info returned
+        """
+    
+        # get parameter
+        land_number = request.query_params.get('land_number')
+        
+        # fetching data according to the parameter.
+        # if land_no provided, return specific land. if lan_no not provided, return all lands
+        if land_number:
+            
+            land_record = LandGeography.objects.get(land__land_number = land_number)
+            serializer = self.serializer_class(land_record)
+        
+        else:
+
+            land_record = LandGeography.objects.all()
+            serializer = self.serializer_class(land_record,many=True)
+        
+        # usign GEOSGeometry we can change the cordinates to many format
+        # now row queryset from database returned
+        # print(GEOSGeometry(lnd).geojson)
+
+        return Response(serializer.data,status=200)
+
+
+
+
 """/////////////////GOV USER///////////////////////"""
 
 class GetUserLand(APIView):
@@ -229,3 +394,18 @@ class GetUserLand(APIView):
         serializer = self.serializer_class(user_land_list, many=True)
 
         return Response(serializer.data, status=200)
+
+
+
+class test(APIView):
+    
+
+    def post(self, request, format=None):
+        csvfile = request.FILES.get("landfile")
+        reader = pd.read_excel(csvfile)
+        
+        for row in reader.itertuples():
+            
+            
+            print(json.loads(row.boundary_polygon)[0])       
+        return Response(status=200)
