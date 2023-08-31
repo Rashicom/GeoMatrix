@@ -349,7 +349,7 @@ class GetLand(APIView):
         this is accepting a parameter land_id. and return back the perticular land info
         if the land_id not provided all the land info returned
         """
-    
+
         # get parameter
         land_number = request.query_params.get('land_number')
         
@@ -357,7 +357,7 @@ class GetLand(APIView):
         # if land_no provided, return specific land. if lan_no not provided, return all lands
         if land_number:
             
-            land_record = LandGeography.objects.get(land__land_number = land_number)
+            land_record = LandGeography.objects.get(land__land_number=land_number, land__is_active=True)
             serializer = self.serializer_class(land_record)
         
         else:
@@ -372,6 +372,10 @@ class GetLand(APIView):
         return Response(serializer.data,status=200)
 
 
+
+# timelayered land
+# active lands in a specific time and date
+# helps to see the changes, and land division rate over time
 
 
 """/////////////////GOV USER///////////////////////"""
@@ -390,22 +394,10 @@ class GetUserLand(APIView):
         user = NormalUser.objects.get(email=email)
         
         # fetchind data and serialize it
-        user_land_list = LandGeography.objects.filter(land__user = user)
+        user_land_list = LandGeography.objects.filter(land__user=user, land__is_active=True)
         serializer = self.serializer_class(user_land_list, many=True)
 
         return Response(serializer.data, status=200)
 
 
 
-class test(APIView):
-    
-
-    def post(self, request, format=None):
-        csvfile = request.FILES.get("landfile")
-        reader = pd.read_excel(csvfile)
-        
-        for row in reader.itertuples():
-            
-            
-            print(json.loads(row.boundary_polygon)[0])       
-        return Response(status=200)

@@ -79,4 +79,18 @@ class LandDataResponseSerializer(serializers.Serializer):
     land_type = serializers.CharField()
     location_coordinate = serializers.ListField()
     area = serializers.FloatField()
-    
+
+
+class DateFilteredLandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Land
+        fields = [
+                    'land_number',
+                    'user',
+                    'locality',
+                    'district',
+                    'state',
+                    'zip_code',
+                    'landgeography_set'
+                    'land_geography'  
+                ]

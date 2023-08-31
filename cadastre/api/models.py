@@ -68,7 +68,7 @@ class LandGeography(models.Model):
         BARREN = "BARREN"
 
 
-    land = models.ForeignKey(Land, on_delete=models.CASCADE)
+    land = models.OneToOneField(Land,related_name="land_geography" ,on_delete=models.CASCADE)
     land_type = models.CharField(max_length=20, choices=Choices.choices)
     location_coordinate = models.PointField()
     boundary_polygon = models.PolygonField()
