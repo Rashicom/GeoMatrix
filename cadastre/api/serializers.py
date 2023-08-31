@@ -78,6 +78,7 @@ class LandDataResponseSerializer(serializers.Serializer):
     land = serializers.IntegerField()
     land_type = serializers.CharField()
     location_coordinate = serializers.ListField()
+    boundary_polygon = serializers.ListField()
     area = serializers.FloatField()
 
 

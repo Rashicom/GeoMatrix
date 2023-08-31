@@ -279,7 +279,7 @@ class BulkRegisterLand(APIView):
             response_data.append(land_data)
 
         # serializing response data and return
-        response_serializer = LandDataResponseSerializer(response_data)
+        response_serializer = LandDataResponseSerializer(response_data,many=True)
         return Response(response_serializer.data,status=200)
 
 
