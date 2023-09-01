@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
 from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer
-from .landoperations import LandSplitValidator
+from .landoperations import LandSplitValidator, LandRegistration
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -339,10 +339,17 @@ class LandSplitRegistration(APIView):
 
         # validating land_record_file
         # if any exception found response returned explicitly
-        
         land_validator.is_valied()
 
-        return Response(status=200)
+        # proceed to update database
+        register = LandRegistration()
+        response_data = register.RegisterMultipleLandForMultipleUser(land_record_file,parent_land=parent_land_instance)
+        if response_data is None:
+            return Response({"details":"somthing went wrong"})
+        
+        print(response_data)
+
+        return Response(response_data,status=200)
 
             
 

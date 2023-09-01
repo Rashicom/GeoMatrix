@@ -78,7 +78,7 @@ class LandRegistration:
         
         # serializing response data and return
         response_serializer = LandDataResponseSerializer(response_land_record,many=True)
-        return Response(response_serializer.data,status=201)
+        return response_serializer.data
 
 
     def RegisterLand(self, validated_data, parent_land=None):
@@ -92,7 +92,9 @@ class LandRegistration:
             user_instance = NormalUser.objects.get(email=email)
         except Exception as e:
             print("user not found")
-            return Response({"details":"user not found"}, status=404)
+
+            # this implicitly return error response
+            raise NotFound("user not found")
         
         # first cordinate append to the last to make a closed loop to obay the poligon pricliple.
         boundery_coordinates = validated_data.get('boundary_polygon')
@@ -104,7 +106,9 @@ class LandRegistration:
             print("polygon DONE")
         except Exception as e:
             print(e)
-            return Response({"details":"Polygon creation filed. please check the coordinates"},status=422)
+
+            # implicitly return response
+            raise ValidationError("Polygon creation filed. please check the coordinates")
 
         # generate a centroid for the poligon for update the land location_cordinates of the LangGeography table
         location_coordinate = land_poligon.centroid
@@ -150,7 +154,8 @@ class LandRegistration:
                 land_geography_serializer.save(land=land_instance)
 
         except Exception as e:
-            return Response({"details":"table updation failed"},status=500)
+            print("table updation filed")
+            return None
 
         return land_data
 
