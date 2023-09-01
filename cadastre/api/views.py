@@ -1,10 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer
+from .landoperations import LandSplitValidator
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -293,7 +295,56 @@ class BulkRegisterLand(APIView):
 
         # serializing response data and return
         response_serializer = LandDataResponseSerializer(response_data,many=True)
-        return Response(response_serializer.data,status=200)
+        return Response(response_serializer.data,status=201)
+
+
+class LandSplitRegistration(APIView):
+
+    serializer_class = LandSplitSerializer
+
+    def post(self, request, format=None):
+        """
+        this method accepting a parent lands user email, land number, and a exl file 
+        the exl file is used to specify
+        1 - fetch data and validate user is the owner of the specified land
+        2 - validate file data
+        3 - register land
+        4 - after a sucessfull land registration set parent land is_active = Fasle and active_till = today date
+        """
+
+        # geting the exl file
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # checking the user and land is exist in the database   
+        try:
+            parent_user_instance = NormalUser.objects.get(email=serializer.validated_data.get("parent_user_email"))
+        except Exception as e:
+            return Response({"details":"parent user not found"}, status=404)
+        
+        try:
+            parent_land_instance = Land.objects.get(land_number=serializer.validated_data.get("parent_land_number"))
+        except Exception as e:
+            return Response({"details":"parent land not found"}, status=404)
+        
+        
+        # check the owner of the land is the same
+        if parent_land_instance.user != parent_user_instance:
+            return Response({"details":"land owner and specified user not match"},status=422)
+
+
+        # validating file data before create it
+        land_record_file = request.FILES.get("land_record_file")
+        land_validator = LandSplitValidator(land_record_file=land_record_file,parent_land_instance=parent_land_instance)
+
+        # validating land_record_file
+        # if any exception found response returned explicitly
+        
+        land_validator.is_valied()
+
+        return Response(status=200)
+
+            
 
 
 
@@ -351,6 +402,7 @@ class ChangeLandOwnership(APIView):
 
 
 
+    
 
 # get land by land_id 
 class GetLand(APIView):
@@ -418,3 +470,12 @@ class GetUserLand(APIView):
 
 
 
+class GetFilteredLand(APIView):
+
+    serializer_class = LandGeographySerializer
+
+    def get(self, request, format=None):
+        """
+        this function is filtering based on land_type
+        """
+        pass

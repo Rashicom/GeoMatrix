@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry
 
+
+
 # fornal users serializer
 class NormalUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -95,3 +97,18 @@ class DateFilteredLandSerializer(serializers.ModelSerializer):
                     'landgeography_set'
                     'land_geography'  
                 ]
+
+
+
+class LandSplitSerializer(serializers.Serializer):
+    land_record_file = serializers.FileField()
+    parent_land_number = serializers.IntegerField()
+    parent_user_email = serializers.EmailField()
+    
+
+class LandRegistrationMultipleUsers(LandRegistraionSerailizer):
+    # suing LandRegistraionSerailizer fields plus adissional fields
+    
+    # insted of email we have to specify owner_email
+    email = None
+    owner_email = serializers.EmailField()
