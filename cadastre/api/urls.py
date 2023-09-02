@@ -15,6 +15,7 @@ urlpatterns = [
     path('bulk_register_land/',views.BulkRegisterLand.as_view()),
     path('land_split/',views.LandSplitRegistration.as_view()),
     path('land_tax_rates/',views.LandTaxRates.as_view()),
-    
-    
+    path('generate_tax_invoice/',views.GenerateTaxInvoice.as_view()),
+
+
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry, LandTypeTaxList
+from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry, LandTypeTaxList, TaxInvoice
 
 
 
@@ -120,3 +120,11 @@ class LandTypeTaxListSerializer(serializers.ModelSerializer):
     class Meta:
         model = LandTypeTaxList
         fields = '__all__'
+
+
+
+class TaxInvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxInvoice
+        fields = '__all__'
+        

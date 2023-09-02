@@ -4,9 +4,10 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer
+from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList, TaxInvoice
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer, TaxInvoiceSerializer
 from .landoperations import LandSplitValidator, LandRegistration
+from .landtax import LandTax
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -492,13 +493,67 @@ class LandTaxRates(APIView):
 
 class GenerateTaxInvoice(APIView):
 
-    def get(self, request):
+    serializer_class = TaxInvoiceSerializer
+    
+    # get active invoice
+    def get(self, request, format=None):
+        """
+        get invoice by invoice number, if invoice number not provided
+        return all invoices
+        """
+        invoice_list = TaxInvoice.objects.filter(is_active=True)
+        serializer = self.serializer_class(invoice_list,many=True)
+        return Response(serializer.data, status=200)
+
+    # generate invoice
+    def post(self, request, format=None):
         """
         this fuction iterate through the land model objects to generate land tax
         checking the land objects last tax invoice generated date. if the defference with tody grater than 30 or any specific period generate a new invoice
         if there is no last invoice found, its a new land registered, and check the land registered date and generate invoice if grater than 30 or any specific periods
         """
-        pass
+        
+        # returned created invoice push to this list to return as api response
+        response_invoices = []
+
+        # iterating through active land model
+        for land_obj in Land.objects.filter(is_active=True):
+            
+            # checke the lands last generated tax invoice date
+            # last invoice matching for the perticular land
+            invoice_instance = TaxInvoice.objects.filter(land=land_obj).last()
+            
+            # if there is a invoice found, it checks again if the invoice validity is over.
+            # if it over we have to generate new invoice fot the next period
+            if invoice_instance:
+
+                # checking the dates if the difference is grater or egual to th specifide period
+                if (date.today() - invoice_instance.tax_date).days >= 7:
+                    """
+                    now the difference is grate than the specific period
+                    generate new tax invoice for the next period
+                    """
+                    # returning invoice instance if created ontherwise error message returned
+                    invoice = LandTax(land_instance=land_obj)
+                    response_invoices.append(invoice)
+
+            # if no last invoice is found, it means its a newly registered land
+            # procede to make a first invoice if time period is passes
+            else:
+                """
+                now today date is checking against the registration date of the land
+                if the difference grater than of the specific date, time generate a new invoice
+                """
+                if (date.today() - land_obj.active_from).days >= 1:
+
+                    # returning invoice instance if created ontherwise error message returned
+                    invoice = LandTax(land_instance=land_obj,new_land=True)
+                    invoice_instance = invoice.generate_tax_invoice()
+                    response_invoices.append(invoice_instance)
+                else:
+                    print("no taxable lands found")
+        serializer = self.serializer_class(response_invoices, many=True)
+        return Response(serializer.data, status=201)
 
 
 # timelayered land
