@@ -11,20 +11,32 @@ from shapely import wkt
 
 # registration and validation
 
+# solid priciples followirng method implimentation pending
+class BaseLandRegistration:
+
+    def BulkRegister(self):
+        pass
+
+    def SingleRegister(self):
+        pass
+
+    def Register(self):
+        pass
+
+
+
+# for defferenc kind of Land registration
 class LandRegistration:
 
     def __init__(self):
         pass
-
 
     def RegisterMultipleLand(self):
         """
         accepting a exl file with multiple land records and update data base
         good for register multiple land for single user
         """
-
         pass
-
 
     def RegisterMultipleLandForMultipleUser(self,land_record,parent_land=None):
         """
@@ -53,6 +65,13 @@ class LandRegistration:
             """
             creating a data object for serialize it and validate
             return if any exception found
+
+            every loop is processing that row and update and return object
+            to append to the response data.
+            
+            if any row is filed to create onle the specific row database updations are roll backed, not affecting already created rows and the future rows
+            register land is return None if the row failed to create, and the none is append to the response data.
+            response data contain info about the created land information and non created land info object
             """
 
             # creating data object for each row
@@ -155,7 +174,8 @@ class LandRegistration:
 
         except Exception as e:
             print("table updation filed")
-            return None
+            # if any date is failed to created it returns none
+            return {"Error":"cant create this land"}
 
         return land_data
 
@@ -201,6 +221,7 @@ class BaseLandValidator:
     
     def is_valied(self):
         pass  
+
 
 
 # this class is inheriting the baseLandValidator class
@@ -277,7 +298,8 @@ class LandSplitValidator(BaseLandValidator):
             land_polygon = Polygon(boundery_coordinates,srid=4326)
         except Exception as e:
             raise ValidationError("cant make a polygon from the given coordinates, please check the coordinates")
-
+        
+        return True
 
 
 
