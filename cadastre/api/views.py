@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
+from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList
 from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer
 from .landoperations import LandSplitValidator, LandRegistration
 from django.contrib.gis.geos import Point, Polygon
@@ -449,16 +449,46 @@ class GetLand(APIView):
 
 
 # land tax crud 
-class LandTax(APIView):
+class LandTaxRates(APIView):
     
-    serializer = LandTypeTaxListSerializer
+    serializer_class = LandTypeTaxListSerializer
 
     def post(self, request, format=None):
         """
         this fuction expecting land_type and land_tax
         and update.
         """
-        pass
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        return Response(serializer.data,status=201)
+
+    def get(self, request, format=None):
+        """
+        this method is returning the tax list
+        """
+        land_type = request.query_params.get("land_type")
+        
+        # if the user enter for a specific landtype tax
+        if land_type:
+            
+            # if land_type does not exist return error message
+            try:
+                tax = LandTypeTaxList.objects.get(land_type=land_type)
+            except Exception as e:
+                return Response({"details":"land_type does not exist"}, status=400)
+
+            serializer = self.serializer_class(tax)
+            return Response(serializer.data, status=200)
+
+        # else return tax list
+        else:            
+            tax_list = LandTypeTaxList.objects.all()
+            serializer = self.serializer_class(tax_list, many=True)
+            return Response(serializer.data, status=200)
+
+
 
 class GenerateTaxInvoice(APIView):
 

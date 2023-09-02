@@ -14,6 +14,7 @@ urlpatterns = [
     path('get_user_land/',views.GetUserLand.as_view()),
     path('bulk_register_land/',views.BulkRegisterLand.as_view()),
     path('land_split/',views.LandSplitRegistration.as_view()),
+    path('land_tax_rates/',views.LandTaxRates.as_view()),
     
     
 ]
