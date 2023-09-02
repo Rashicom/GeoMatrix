@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry
+from .models import NormalUser, GovbodyUser, Gov_body_Address, Land, LandGeography, LandOwnershipRegistry, LandTypeTaxList
 
 
 
@@ -112,3 +112,11 @@ class LandRegistrationMultipleUsers(LandRegistraionSerailizer):
     # insted of email we have to specify owner_email
     email = None
     owner_email = serializers.EmailField()
+
+
+
+# for crud on land tax table
+class LandTypeTaxListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandTypeTaxList
+        fields = '__all__'

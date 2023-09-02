@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer
 from .landoperations import LandSplitValidator, LandRegistration
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
@@ -447,6 +447,28 @@ class GetLand(APIView):
 
         return Response(serializer.data,status=200)
 
+
+# land tax crud 
+class LandTax(APIView):
+    
+    serializer = LandTypeTaxListSerializer
+
+    def post(self, request, format=None):
+        """
+        this fuction expecting land_type and land_tax
+        and update.
+        """
+        pass
+
+class GenerateTaxInvoice(APIView):
+
+    def get(self, request):
+        """
+        this fuction iterate through the land model objects to generate land tax
+        checking the land objects last tax invoice generated date. if the defference with tody grater than 30 or any specific period generate a new invoice
+        if there is no last invoice found, its a new land registered, and check the land registered date and generate invoice if grater than 30 or any specific periods
+        """
+        pass
 
 
 # timelayered land

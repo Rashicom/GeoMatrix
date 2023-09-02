@@ -85,6 +85,33 @@ class TaxInvoice(models.Model):
     area = models.IntegerField()
     amount = models.IntegerField()
     tax_date = models.DateField(auto_now_add=True)
+    
+    # True if the invoice not paide still active, false invoice is paid and closed
+    # status set to False if the invoice amount completely paide, calculated from invoice payment table
+    is_active = models.BooleanField(default=True)
+
+
+# diferent land have differenct land taxes
+class LandTypeTaxList(models.Model):
+
+    class Choices(models.TextChoices):
+        RESIDENTIAL = "RESIDENTIAL"
+        AGRICULTURAL = "AGRICULTURAL"
+        COMMERCIAL = "COMMERCIAL"
+        INDUSTRIAL = "INDUSTRIAL"
+        TRANSPORT = "TRANSPORT"
+        RECREATIONAL = "RECREATIONAL"
+        INVESTMENT = "INVESTMENT"
+        ECOSENSITIVE = "ECOSENSITIVE"
+        FOREST = "FOREST"
+        WET = "WET"
+        RANGE = "RANGE"
+        BARREN = "BARREN"
+
+    land_type = models.CharField(max_length=20, choices=Choices.choices, unique=True)
+    land_tax = models.IntegerField()
+
+
 
 class TaxInvoicePayment(models.Model):
     tax_payment_id = models.AutoField(primary_key=True)
