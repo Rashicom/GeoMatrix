@@ -16,6 +16,7 @@ import pandas as pd
 import json
 from pyproj import Geod
 from shapely import wkt
+from datetime import date
 
 
 """/////////////////GOV USER///////////////////////"""
@@ -347,13 +348,16 @@ class LandSplitRegistration(APIView):
         if response_data is None:
             return Response({"details":"somthing went wrong"})
         
-        print(response_data)
+        # after a succsessfull land registration, make some changes in the parent land, becouse parent land must be removed from some checks like taxing, filtering , etc..
+        # the parent land will have some child lands which is splited from parent, and the spliting info we need to store for data generations so we cant delete
+        # set is_ctive=True and active_till = today date
+        parent_land_instance.is_active=False
+        parent_land_instance.active_till=date.today()
+        parent_land_instance.save()
 
         return Response(response_data,status=200)
 
             
-
-
 
 
 # change land ownership
