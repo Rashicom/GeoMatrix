@@ -3,7 +3,8 @@ from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager, Group, Permission
 from django.utils.translation import gettext_lazy as _
 from django.contrib.gis.geos import point
-
+from datetime import date
+from django.db.models import Q
 
 # normal users
 class NormalUser(models.Model):
@@ -38,7 +39,7 @@ class Land(models.Model):
     # after split set to false becouse the property doesnt no longer exist and other services like tax, data genaration models doesnt include this property
     is_active = models.BooleanField(default=True)
 
-
+    
 
 class LandOwnershipRegistry(models.Model):
     """

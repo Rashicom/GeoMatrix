@@ -555,10 +555,11 @@ class GenerateTaxInvoice(APIView):
         serializer = self.serializer_class(response_invoices, many=True)
         return Response(serializer.data, status=201)
 
-
+# FILTER
 # timelayered land
 # active lands in a specific time and date
 # helps to see the changes, and land division rate over time
+
 
 
 """/////////////////GOV USER///////////////////////"""
