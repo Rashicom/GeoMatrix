@@ -619,6 +619,27 @@ class LandFilteres(viewsets.ViewSet):
         serializer = self.serializer_class(filtered_data, many=True)
         return Response(serializer.data,status=200)
 
+    
+    @action(detail=False)
+    def land_type(self, request, format=None):
+        """
+        accept: land_type_list list()
+        returns: filtering land according to the value contained in the list
+        """
+
+        land_type_list = request.query_params.get("land_type_list")
+        
+        # creating object fo base aldn filter class
+        # all the filters in this class returning filtered objects as Land model query set
+        land_filter = BaseLandFilters()
+        filtered_data = land_filter.land_type_filter(land_type_list=json.loads(land_type_list))
+
+        # serialize and return
+        serializer = self.serializer_class(filtered_data,many=True)
+        return Response(serializer.data, status=200)
+
+
+
 
 
 """/////////////////GOV USER///////////////////////"""
