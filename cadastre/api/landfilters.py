@@ -69,6 +69,11 @@ class BaseLandFilters:
             filtered_data = filtered_data.filter(locality__iexact=locality)
         if zip_code:
             filtered_data = filtered_data.filter(zip_code=zip_code)
+
+        # after filtering if filtered data not exist we cond want to let it pass through active alnd only check
+        # if it , it call active_land function land_set = none in this case, method grab all data from land record and couse a returning all land files
+        if len(filtered_data) == 0:
+            return filtered_data
         
         # return data according to the active_land_only value
         # if active_land_only is true
@@ -78,6 +83,7 @@ class BaseLandFilters:
 
         # if user set active_land_only=False return all data
         else:
+            
             return filtered_data
     
 

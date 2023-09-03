@@ -1,6 +1,11 @@
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from . import views
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'land_filter', views.LandFilteres, basename='land_filter')
+
 
 urlpatterns = [
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -16,6 +21,10 @@ urlpatterns = [
     path('land_split/',views.LandSplitRegistration.as_view()),
     path('land_tax_rates/',views.LandTaxRates.as_view()),
     path('generate_tax_invoice/',views.GenerateTaxInvoice.as_view()),
-    path('time_snapshort/',views.TimelayerSnapshort.as_view()),
+    
+    # land filters
+    path('', include(router.urls)),
+
+
 
 ]

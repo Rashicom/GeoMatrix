@@ -135,3 +135,10 @@ class TaxInvoiceSerializer(serializers.ModelSerializer):
         model = TaxInvoice
         fields = '__all__'
         
+
+class LandInAddressSerializer(serializers.Serializer):
+    state = serializers.CharField(required=False)
+    district = serializers.CharField(required=False)
+    locality = serializers.CharField(required=False)
+    zip_code = serializers.CharField(required=False)
+    active_land_only = serializers.BooleanField(required=False)

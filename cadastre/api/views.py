@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList, TaxInvoice
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer, TaxInvoiceSerializer, DateFilteredLandSerializer
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer, TaxInvoiceSerializer, DateFilteredLandSerializer, LandInAddressSerializer
 from .landoperations import LandSplitValidator, LandRegistration
 from .landtax import LandTax
 from .landfilters import BaseLandFilters
@@ -14,6 +14,7 @@ from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
 from geopy.geocoders import Nominatim
 from django.contrib.gis.geos import GEOSGeometry
+from rest_framework.decorators import action
 import pandas as pd
 import json
 from pyproj import Geod
@@ -556,12 +557,16 @@ class GenerateTaxInvoice(APIView):
         serializer = self.serializer_class(response_invoices, many=True)
         return Response(serializer.data, status=201)
 
-# FILTER
-class TimelayerSnapshort(APIView):
+
+
+# FILTER : time layer snapshort
+class LandFilteres(viewsets.ViewSet):
 
     serializer_class = DateFilteredLandSerializer
 
-    def get(self, request, format=None):
+    # deail=true means it called on get, for other http methods, set it to true then pass extra argument called methods=[post,put]
+    @action(detail=False)
+    def time_snapshort(self, request, format=None):
         """
         accepts : snapshort as a params
         return : time snapshort lands details 
@@ -569,6 +574,8 @@ class TimelayerSnapshort(APIView):
         
         # geting snapshort date from params
         snapshort_date = request.query_params.get("snapshort_date")
+        if not snapshort_date:
+            return Response({"details":"snapshort_date not provided"})
 
         # creating object fo base aldn filter class
         # all the filters in this class returning filtered objects as Land model query set
@@ -582,11 +589,35 @@ class TimelayerSnapshort(APIView):
         return Response(serializer.data,status=200, )
 
 
+    @action(detail=False)
+    def land_in_address(self, request, format=None):
+        """
+        accept: state,district,locality,zipcode,zctive_land_only for query params
+        all fieds are optional
+        active_land_only = True by default(retunrs only active lands)
+        return: filtering the land according to the given data and return filtered data
+        """
 
+        # fetchind date from params and serialize it
+        land_in_address_serializer = LandInAddressSerializer(data=request.query_params)
+        land_in_address_serializer.is_valid(raise_exception=True)
 
+        # creating object fo base aldn filter class
+        # all the filters in this class returning filtered objects as Land model query set
+        land_filter = BaseLandFilters()
 
-
-
+        # address filter
+        filtered_data = land_filter.land_in_address(
+            state=land_in_address_serializer.validated_data.get("state"),
+            district=land_in_address_serializer.validated_data.get("district"),
+            locality=land_in_address_serializer.validated_data.get("locality"),
+            zip_code=land_in_address_serializer.validated_data.get("zip_code"),
+            active_land_only=land_in_address_serializer.validated_data.get("active_land_only")
+        )
+        
+        #serializing and returning data
+        serializer = self.serializer_class(filtered_data, many=True)
+        return Response(serializer.data,status=200)
 
 
 
