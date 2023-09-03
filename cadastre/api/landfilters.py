@@ -7,7 +7,6 @@ from django.db.models import Q
 # land type filter
 # lands inside a large poligon filter(role based admin land retruve)
 
-# timestamp filter to see changes over time
 
 
 class BaseLandFilters:

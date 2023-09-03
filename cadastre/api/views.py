@@ -5,9 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList, TaxInvoice
-from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer, TaxInvoiceSerializer
+from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializer ,LandSerializer, LandGeographySerializer, ChangeOwnershipRegistrySerializer, LandDataResponseSerializer, LandSplitSerializer, LandTypeTaxListSerializer, TaxInvoiceSerializer, DateFilteredLandSerializer
 from .landoperations import LandSplitValidator, LandRegistration
 from .landtax import LandTax
+from .landfilters import BaseLandFilters
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -556,9 +557,36 @@ class GenerateTaxInvoice(APIView):
         return Response(serializer.data, status=201)
 
 # FILTER
-# timelayered land
-# active lands in a specific time and date
-# helps to see the changes, and land division rate over time
+class TimelayerSnapshort(APIView):
+
+    serializer_class = DateFilteredLandSerializer
+
+    def get(self, request, format=None):
+        """
+        accepts : snapshort as a params
+        return : time snapshort lands details 
+        """
+        
+        # geting snapshort date from params
+        snapshort_date = request.query_params.get("snapshort_date")
+
+        # creating object fo base aldn filter class
+        # all the filters in this class returning filtered objects as Land model query set
+        land_filter = BaseLandFilters()
+
+        # time layer filter
+        filtered_data = land_filter.timelayer_snapshort(snapshort_date=snapshort_date)
+        
+        # serializing and returning data
+        serializer = self.serializer_class(filtered_data, many=True)
+        return Response(serializer.data,status=200, )
+
+
+
+
+
+
+
 
 
 

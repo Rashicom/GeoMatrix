@@ -84,7 +84,14 @@ class LandDataResponseSerializer(serializers.Serializer):
     area = serializers.FloatField()
 
 
+class LandGeographyfilterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandGeography
+        fields = '__all__'
+
+
 class DateFilteredLandSerializer(serializers.ModelSerializer):
+    land_geography = LandGeographyfilterSerializer()
     class Meta:
         model = Land
         fields = [
@@ -94,9 +101,9 @@ class DateFilteredLandSerializer(serializers.ModelSerializer):
                     'district',
                     'state',
                     'zip_code',
-                    'landgeography_set'
-                    'land_geography'  
+                    'land_geography'
                 ]
+        
 
 
 
