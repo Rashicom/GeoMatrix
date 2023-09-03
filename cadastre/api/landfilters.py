@@ -16,6 +16,7 @@ class BaseLandFilters:
         self.land_query_set = Land.objects.order_by("land_number")
         
 
+    # time layer filtering
     def timelayer_snapshort(self, snapshort_date=None, land_set=None):
         """
         this function recieves snashort date a specific time which we want to take
@@ -42,7 +43,9 @@ class BaseLandFilters:
         
         return filtered_data
     
-    def land_in_address(self,locality=None, district=None, state=None, zip_code=None, land_set=None):
+
+    # land address filtering
+    def land_in_address(self,locality=None, district=None, state=None, zip_code=None, land_set=None, active_land_only=True):
         """
         accept : locality,district,state,zip_code, land_set  default = None
         return filtered data <QuerySet>
@@ -68,10 +71,36 @@ class BaseLandFilters:
         if zip_code:
             filtered_data = filtered_data.filter(zip_code=zip_code)
         
-        return filtered_data
-    
-        
+        # return data according to the active_land_only value
+        # if active_land_only is true
+        # DEFAULT: True
+        if active_land_only:
+            return self.active_land(land_set=filtered_data)
 
+        # if user set active_land_only=False return all data
+        else:
+            return filtered_data
+    
+
+    # land type filter
+    def land_type_filter(self, land_set=None, land_type_list=list()):
+        """
+        accept: land_type <list>
+        return: <QuerySet>
+        filtering the land table according to the given list
+        """
+
+        # if land set is given perform operation on it. else land_set set to full land data set
+        land_set = land_set if land_set else self.land_query_set
+        
+        # filtering using the land_type_list(revers relational lookup)
+        filtered_data = land_set.filter(land_geography__land_type__in=land_type_list)
+
+        return filtered_data
+
+
+
+    # active land filtering
     def active_land(self, land_set=None):
         """
         return active land sets
@@ -82,7 +111,7 @@ class BaseLandFilters:
 
         # if land set is given perform operation on it. else land_set set to full land data set
         land_set = land_set if land_set else self.land_query_set
-
+        
         # return active lands in the privided set
         filtered_data = land_set.filter(is_active=True)
         return filtered_data
