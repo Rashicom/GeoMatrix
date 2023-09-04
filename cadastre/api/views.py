@@ -642,7 +642,7 @@ class LandFilteres(viewsets.ViewSet):
 
 
 
-"""/////////////////GOV USER///////////////////////"""
+"""/////////////////NORMAL USER///////////////////////"""
 
 class GetUserLand(APIView):
     serializer_class = LandGeographySerializer
@@ -668,13 +668,3 @@ class GetUserLand(APIView):
         return Response(serializer.data, status=200)
 
 
-
-class GetFilteredLand(APIView):
-
-    serializer_class = LandGeographySerializer
-
-    def get(self, request, format=None):
-        """
-        this function is filtering based on land_type
-        """
-        pass

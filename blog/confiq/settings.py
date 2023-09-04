@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
+    'rest_framework',
     'corsheaders',
     'drf_spectacular',
 
@@ -91,7 +92,7 @@ WSGI_APPLICATION = 'confiq.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "geomatrix_blog",
         "USER": "postgres",
         "PASSWORD": "rashi123",
@@ -148,3 +149,11 @@ MEDIA_URL = '/media/'
 
 # cors configure
 CORS_ALLOW_ALL_ORIGINS = True
+
+# custom normal user authentication override
+AUTH_USER_MODEL = "api.NormalUser"
+
+# custom goverment user authentication override
+# this model is required to authenticate the gov users
+# authentication classes are overrided and calling this to check the user in gou user table
+AUTH_USER_MODEL_GOV = "api.Gov_body_user"

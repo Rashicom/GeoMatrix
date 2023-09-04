@@ -3,6 +3,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from . import views
 
 
+
+
 urlpatterns = [
     # YOUR PATTERNS
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
