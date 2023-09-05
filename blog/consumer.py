@@ -9,6 +9,7 @@ environ.setdefault('DJANGO_SETTINGS_MODULE', 'confiq.settings')
 django.setup()
 
 
+
 "--------------------- CALL BACK FUNCTIONS --------------------------"
 
 from api.serializers import NormalUserSignupSerializer, GovBodyAddressSerializer,GovSignupSeriaizers
@@ -58,6 +59,7 @@ def gov_user_signup_consume(ch,method,properties,body):
             address_serializer.save(gov_body=gon_user_instance)
         except Exception as e:
             print("cant update gov gov user")
+    
     else:
         print("invalied fields")
 
