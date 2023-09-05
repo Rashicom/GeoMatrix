@@ -51,6 +51,8 @@ def gov_user_signup_consume(ch,method,properties,body):
     except Exception as e:
         print("cant update gov gov user")
 
+def test_consume(ch,method,properties,body):
+    print(body)
 
 
 # establishing connection with rabitmq server
@@ -62,14 +64,15 @@ channel = connection.channel()
 
 
 # queue
-channel.queue_declare(queue='signup')
+channel.queue_declare(queue='normaluser_signup_cadastre')
 channel.queue_declare(queue='gov_user_signup')
+channel.queue_declare(queue='test2')
 
-        
 
 # consuming from queue
-channel.basic_consume(queue='signup', on_message_callback=normal_user_signup_consume, auto_ack=True)
+channel.basic_consume(queue='normaluser_signup_cadastre', on_message_callback=normal_user_signup_consume, auto_ack=True)
 channel.basic_consume(queue='gov_user_signup', on_message_callback=gov_user_signup_consume, auto_ack=True)
+channel.basic_consume(queue='test2',on_message_callback=test_consume, auto_ack=True)
 
 
 

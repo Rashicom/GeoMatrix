@@ -156,4 +156,4 @@ AUTH_USER_MODEL = "api.NormalUser"
 # custom goverment user authentication override
 # this model is required to authenticate the gov users
 # authentication classes are overrided and calling this to check the user in gou user table
-AUTH_USER_MODEL_GOV = "api.Gov_body_user"
+AUTH_USER_MODEL_GOV = "api.GovBodyUser"

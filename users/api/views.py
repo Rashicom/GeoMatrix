@@ -65,7 +65,8 @@ class signup(APIView):
             data = {
                 "email": serializer.validated_data.get("email"),
                 "adhar_id": serializer.validated_data.get("adhar_id"),
-                "contact_number": serializer.validated_data.get("contact_number")
+                "contact_number": serializer.validated_data.get("contact_number"),
+                "password": serializer.validated_data.get("password")
             }
             # publishing
             try:

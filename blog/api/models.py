@@ -50,10 +50,6 @@ class NormalUser(AbstractUser):
     email = models.EmailField(unique=True)
     adhar_id = models.CharField(max_length=10, unique=True)
     contact_number = models.CharField(max_length=12)
-    locality = models.CharField(max_length=20)
-    district = models.CharField(max_length=20)
-    state = models.CharField(max_length=20)
-    zipcode = models.CharField(max_length=10)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -79,7 +75,7 @@ state gov_users can have the permission over user and lands registered inside th
 
 # custom customer for user
 # extrafields are added to by inheriting the django user
-class Gov_body_user(AbstractUser):
+class GovBodyUser(AbstractUser):
 
     # field doesnot needed
     username = None
@@ -99,10 +95,6 @@ class Gov_body_user(AbstractUser):
         },)
     gov_body_name = models.CharField(max_length=50)
     contact_number = models.CharField(max_length=12)
-
-    locality = models.CharField(max_length=20)
-    district = models.CharField(max_length=20)
-    state = models.CharField(max_length=20)
     
     # many to many field to  default groups and permission tables with defferent related_name argumets
     # helps to avoiding conflict with the Customuser, becouse both Custome user and gov_body_user inherit Abstract user
@@ -115,13 +107,24 @@ class Gov_body_user(AbstractUser):
     objects = CustomUserManager()
 
 
+# Gov body address
+# referencing user one to one reltion
+class GovBodyAddress(models.Model):
+    address_id = models.AutoField(primary_key=True)
+    gov_body = models.OneToOneField(GovBodyUser, on_delete=models.CASCADE)
+    locality = models.CharField(max_length=20)
+    district = models.CharField(max_length=20)
+    state = models.CharField(max_length=20)
+    country = models.CharField(max_length=20, default="INDIA")
+
+
 
 
 "///////////////////////////////  BLOGS  ///////////////////////////////"
 # blogs
 class Blogs(models.Model):
     blog_number = models.AutoField(primary_key=True)
-    blogger = models.ForeignKey(Gov_body_user, on_delete=models.CASCADE)
+    blogger = models.ForeignKey(GovBodyUser, on_delete=models.CASCADE)
 
     blog_image = models.ImageField(upload_to="blog_images")
     blog_descripton = models.TextField()
