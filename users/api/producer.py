@@ -5,21 +5,48 @@ import json
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
+
+
+'--------------------- EXCHANGE DECLARE --------------------'
 # create a exchange
+# exchange for normal user signup
 channel.exchange_declare(exchange='Normaluser_login_exchange', exchange_type='fanout')
 
-# declare queue to bind exchange
+# exchange for gov user signup
+channel.exchange_declare(exchange='Govuser_login_exchange', exchange_type='fanout')
+
+
+
+
+'---------------------- QUEUE DECLARE -------------------------'
+# Normal user queues
 channel.queue_declare(queue='normaluser_signup_cadastre')
 channel.queue_declare(queue='normaluser_signup_blogs')
 
-# bind queue to the exchange
+# gov user queues
+channel.queue_declare(queue='govuser_signup_cadastre')
+channel.queue_declare(queue='govuser_signup_blogs')
+
+
+
+
+'------------------ BIND QUEUE WITH EXCHANGE --------------------'
+# bind normal user login que with exchange: Normaluser_login_exchange
 channel.queue_bind(exchange='Normaluser_login_exchange',queue='normaluser_signup_cadastre')
 channel.queue_bind(exchange='Normaluser_login_exchange',queue='normaluser_signup_blogs')
 
+# bind normal user login que with exchange: Govuser_login_exchange
+channel.queue_bind(exchange='Govuser_login_exchange', queue='govuser_signup_cadastre')
+channel.queue_bind(exchange='Govuser_login_exchange', queue='govuser_signup_blogs')
 
 
 
-def signup_publish(data):
+
+
+'------------------- PUBLISHIGN METHODS -----------------------'
+
+# publish normal user signup
+def signup_publish(data):	
     """
     this fuction taking an argument data which consist nesessory details included for 
     updating user table 
@@ -33,13 +60,15 @@ def signup_publish(data):
     channel.basic_publish(exchange='Normaluser_login_exchange',routing_key='',body=json.dumps(data))
 
 
+
+# publish gov user signup
 def gov_user_signup_publish(data):
     """
     publishing gov uer signup details
     """
 
     print("publishing gov user signup")
-    channel.basic_publish(exchange='',routing_key='gov_user_signup',body=json.dumps(data))
+    channel.basic_publish(exchange='Govuser_login_exchange',routing_key='',body=json.dumps(data))
 
 
 

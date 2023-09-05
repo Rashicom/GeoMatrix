@@ -9,7 +9,8 @@ environ.setdefault('DJANGO_SETTINGS_MODULE', 'confiq.settings')
 django.setup()
 
 
-"/////////////////////  CALL BACK FUNCTIONS //////////////////////"
+"--------------------- CALL BACK FUNCTIONS --------------------------"
+
 from api.serializers import NormalUserSignupSerializer, GovBodyAddressSerializer,GovSignupSeriaizers
 from django.contrib.auth.hashers import make_password
 
@@ -47,37 +48,45 @@ def gov_user_signup_consume(ch,method,properties,body):
     user_data = json.loads(body)
     serializer = GovSignupSeriaizers(data=user_data.get("user"))
     address_serializer = GovBodyAddressSerializer(data=user_data.get("address"))
-    serializer.is_valid()
-    address_serializer.is_valid()
     
-    try:
-        gon_user_instance = serializer.save()
-        address_serializer.save(gov_body=gon_user_instance)
-    except Exception as e:
-        print("cant update gov gov user")
+
+    if serializer.is_valid() and address_serializer.is_valid():
+        try:
+            # hashing password
+            hashed_password = make_password(serializer.validated_data.get("password"))
+            gon_user_instance = serializer.save(password=hashed_password)
+            address_serializer.save(gov_body=gon_user_instance)
+        except Exception as e:
+            print("cant update gov gov user")
+    else:
+        print("invalied fields")
 
 
-def tesst_consume(ch,method,properties,body):
-    print(body)
 
 
-"////////////////////  CHANNEL AND QUEUE CONFIG //////////////////"
 
+"-------------------- CHANNEL AND QUEUE CONFIG --------------------"
 # establishing connection with rabbitMQ server
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
 
 
-# que
+
+
+'------------------------ QUEUE DECLARE ---------------------------'
+# queue
 channel.queue_declare(queue='normaluser_signup_blogs')
-channel.queue_declare(queue='gov_user_signup')
-channel.queue_declare(queue='test1')
+channel.queue_declare(queue='govuser_signup_blogs')
 
 
+
+
+'-------------------- CONSUMING FROM QUEUE ------------------------'
 # consuming from queue
 channel.basic_consume(queue='normaluser_signup_blogs',on_message_callback=normal_user_signup_consume,auto_ack=True)
-channel.basic_consume(queue='gov_user_signup',on_message_callback=gov_user_signup_consume,auto_ack=True)
-channel.basic_consume(queue='test1',on_message_callback=tesst_consume,auto_ack=True)
+channel.basic_consume(queue='govuser_signup_blogs',on_message_callback=gov_user_signup_consume,auto_ack=True)
+
+
 
 print("started consuming..")
 channel.start_consuming()

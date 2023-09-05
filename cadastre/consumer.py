@@ -10,7 +10,7 @@ django.setup()
 from api.serializers import NormalUserSerializer, GovbodyUserSerializer, GovbodyUserAddressSerializer
 
 
-
+'-------------------- CALL BACK FUNCTIONS ---------------'
 # signup consumer
 def normal_user_signup_consume(ch,method,properties, body):
     """
@@ -31,7 +31,6 @@ def normal_user_signup_consume(ch,method,properties, body):
     else:
         print("cant update table for login")
     
-
 
 def gov_user_signup_consume(ch,method,properties,body):
     """
@@ -55,6 +54,9 @@ def test_consume(ch,method,properties,body):
     print(body)
 
 
+
+
+'---------------- CHANNEL AND QUEUE CONFIGUE ----------'
 # establishing connection with rabitmq server
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
@@ -62,17 +64,17 @@ channel = connection.channel()
 
 
 
-
+'--------------------- QUEUE DECLARE ----------------------'
 # queue
 channel.queue_declare(queue='normaluser_signup_cadastre')
-channel.queue_declare(queue='gov_user_signup')
-channel.queue_declare(queue='test2')
+channel.queue_declare(queue='govuser_signup_cadastre')
 
 
+
+'------------------ CONSUMING FROM QUEUE -----------------'
 # consuming from queue
 channel.basic_consume(queue='normaluser_signup_cadastre', on_message_callback=normal_user_signup_consume, auto_ack=True)
-channel.basic_consume(queue='gov_user_signup', on_message_callback=gov_user_signup_consume, auto_ack=True)
-channel.basic_consume(queue='test2',on_message_callback=test_consume, auto_ack=True)
+channel.basic_consume(queue='govuser_signup_cadastre', on_message_callback=gov_user_signup_consume, auto_ack=True)
 
 
 
