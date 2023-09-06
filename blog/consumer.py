@@ -16,6 +16,7 @@ django.setup()
 from api.serializers import NormalUserSignupSerializer, GovBodyAddressSerializer,GovSignupSeriaizers
 from django.contrib.auth.hashers import make_password
 
+
 # normal user signup consumer
 def normal_user_signup_consume(ch,method,properties, body):
     """
@@ -44,6 +45,7 @@ def normal_user_signup_consume(ch,method,properties, body):
         print("cant update table for login")
 
 
+
 # gov body signup consumer
 def gov_user_signup_consume(ch,method,properties,body):
     """
@@ -66,7 +68,7 @@ def gov_user_signup_consume(ch,method,properties,body):
             # acknowledge that messate process success and dequeue messag fromt he queue
             # else message remains in the queue until a acknoledge came
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            
+
         except Exception as e:
             print("cant update gov gov user")
     
@@ -74,7 +76,6 @@ def gov_user_signup_consume(ch,method,properties,body):
         print("invalied fields")
 
     
-
 
 
 "-------------------- CHANNEL AND QUEUE CONFIG --------------------"

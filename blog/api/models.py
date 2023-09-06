@@ -133,6 +133,7 @@ class Blogs(models.Model):
     is_vote = models.BooleanField(default=False)
 
 
+
 class VoteReaction(models.Model):
     class Reaction(models.TextChoices):
         STRONGLY_SUPPORT = "STRONGLY_SUPPORT"
@@ -141,15 +142,16 @@ class VoteReaction(models.Model):
         DISAGREE = "DISAGREE"
         STRONGLY_DISAGREE = "STRONGLY_DISAGREE"
 
-    blog_number = models.ForeignKey(Blogs, on_delete=models.CASCADE)
+    blog_number = models.ForeignKey(Blogs,related_name='vote_reactions' , on_delete=models.CASCADE)
     voter = models.ForeignKey(NormalUser, on_delete=models.CASCADE)
     reaction = models.CharField(max_length=50, choices=Reaction.choices)
     voted_date = models.DateField(auto_now=True)
 
 
+
 class BlogReaction(models.Model):
 
-    blog_number = models.ForeignKey(Blogs, on_delete=models.CASCADE)
+    blog_number = models.ForeignKey(Blogs,related_name='blog_reactions', on_delete=models.CASCADE)
     user = models.ForeignKey(NormalUser, on_delete=models.CASCADE)
 
     # true = liked
@@ -159,15 +161,17 @@ class BlogReaction(models.Model):
     like_date = models.DateField(auto_now=True)
 
 
+
 # blog comments
 class Comments(models.Model):
 
-    blog_number = models.ForeignKey(Blogs, on_delete=models.CASCADE)
+    blog_number = models.ForeignKey(Blogs, related_name="comment_set", on_delete=models.CASCADE)
     commenter = models.ForeignKey(NormalUser, on_delete=models.CASCADE)
     
-    replay_to = models.ForeignKey("self", on_delete=models.CASCADE)
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, related_name='replay_set',blank=True,null=True)
 
-    comment_test = models.TextField()
+    comment_text = models.TextField()
     comment_date = models.DateField(auto_now=False)
 
-
+    class Meta:
+        ordering = ['comment_date']

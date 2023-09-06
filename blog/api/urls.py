@@ -1,8 +1,7 @@
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from rest_framework.routers import DefaultRouter
 from . import views
-
-
 
 
 urlpatterns = [
@@ -11,8 +10,12 @@ urlpatterns = [
     # Optional UI:
     path('swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
-    path('test/', views.test.as_view()),
     
+    path('blog/',views.Blog.as_view()),
+    path('get_all_blogs/',views.GetBlogs.as_view()),
+    
+
+
+  
 
 ]
