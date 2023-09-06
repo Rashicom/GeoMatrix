@@ -171,7 +171,7 @@ class Comments(models.Model):
     parent = models.ForeignKey("self", on_delete=models.CASCADE, related_name='replay_set',blank=True,null=True)
 
     comment_text = models.TextField()
-    comment_date = models.DateField(auto_now=False)
+    comment_date = models.DateField(auto_now=True)
 
     class Meta:
         ordering = ['comment_date']

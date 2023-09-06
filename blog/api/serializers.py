@@ -58,7 +58,8 @@ class GetBlogSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
+    
+    commenter = serializers.CharField(required=False)
     class Meta:
         model = Comments
         fields = '__all__'
-        

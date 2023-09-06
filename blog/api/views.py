@@ -93,9 +93,21 @@ class AddComment(APIView):
         direct comment parent field defaultly set to null
         """
 
-        # fetch data
+        # fetch data, serialize and validate it
         user = request.user
-        pass
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # post comment
+        try:
+            serializer.save(commenter=user)
+        except Exception as e:
+            print("cant update comment")
+            return Response({"details":"cant update comment"},status=500)
+        
+        return Response(serializer.data, status=201)
+        
+        
 
 
 
