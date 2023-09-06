@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from .customauth import GovuserJwtAuthentication
-from .serializers import BlogsSerializer, GetBlogSerializer, CommentsSerializer, BlogReactionSerializer
+from .serializers import BlogsSerializer, GetBlogSerializer, CommentsSerializer, BlogReactionSerializer, VoteReactionSerializer
 from .models import Blogs
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -135,10 +135,21 @@ class BlogReactions(APIView):
             print(e)
             return Response({"details":"cant update database"}, status=500)
         return Response(serializer.data, status=201)
-        
 
+
+
+class VoteReactions(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = VoteReactionSerializer
     
-
+    def post(self, request, format=None):
+        """
+        accept: blog_number, reaction(must be one of the option)
+        update the voating model
+        """
+        pass
 
         
         

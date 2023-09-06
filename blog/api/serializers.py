@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NormalUser, GovBodyUser, GovBodyAddress, Blogs, Comments, BlogReaction
+from .models import NormalUser, GovBodyUser, GovBodyAddress, Blogs, Comments, BlogReaction, VoteReaction
 
 
 # giv user signup
@@ -80,3 +80,14 @@ class BlogReactionSerializer(serializers.ModelSerializer):
         else:
             instance = BlogReaction.objects.create(**validated_data)
         return instance
+
+
+
+class VoteReactionSerializer(serializers.ModelField):
+
+    # excluding from validation
+    voter = serializers.CharField(required=False)
+    class Meta:
+        model = VoteReaction
+        fields = '__all__'
+        
