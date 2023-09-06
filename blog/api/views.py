@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from .customauth import GovuserJwtAuthentication
-from .serializers import BlogsSerializer, GetBlogSerializer, CommentsSerializer
+from .serializers import BlogsSerializer, GetBlogSerializer, CommentsSerializer, BlogReactionSerializer
 from .models import Blogs
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -106,9 +106,38 @@ class AddComment(APIView):
             return Response({"details":"cant update comment"},status=500)
         
         return Response(serializer.data, status=201)
-        
+
         
 
+# blog reaction like and unlike
+class BlogReactions(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = BlogReactionSerializer
+    def post(self,request,format=None):
+        """
+        accept: blog_number, like(True of False)
+        like or unlike a blog by user
+        like = True liked
+        like = False unlike
+        if no record user not reacted
+        """
+
+        user = request.user
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # update to data base
+        try:
+            serializer.save(user=user)
+        except Exception as e:
+            print(e)
+            return Response({"details":"cant update database"}, status=500)
+        return Response(serializer.data, status=201)
+        
+
+    
 
 
         

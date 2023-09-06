@@ -14,9 +14,8 @@ urlpatterns = [
     path('blog/',views.Blog.as_view()),
     path('get_all_blogs/',views.GetBlogs.as_view()),
     path('add_comment/',views.AddComment.as_view()),
+    path('blog_reaction/',views.BlogReactions.as_view()),
+    
 
-
-
-  
 
 ]
