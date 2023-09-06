@@ -57,7 +57,7 @@ class NormalUser(AbstractUser):
     objects = CustomUserManager()
 
 
-"//////////////////////////  Gov_body_user  ////////////////////////////////"
+"--------------------  Gov_body_user  ----------------------------------"
 
 """
 this is a user model for gov_body inherit from the Abstract user model
@@ -120,7 +120,8 @@ class GovBodyAddress(models.Model):
 
 
 
-"///////////////////////////////  BLOGS  ///////////////////////////////"
+
+"-------------------------  BLOGS  ---------------------------------"
 # blogs
 class Blogs(models.Model):
     blog_number = models.AutoField(primary_key=True)

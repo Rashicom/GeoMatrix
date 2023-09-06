@@ -3,6 +3,7 @@ import json
 import django
 from sys import path
 from os import environ
+import time
 
 path.append('/home/rashi/Microservice projects/GeoMatrix/blog/config/settings.py')
 environ.setdefault('DJANGO_SETTINGS_MODULE', 'confiq.settings')
@@ -35,6 +36,10 @@ def normal_user_signup_consume(ch,method,properties, body):
         hashed_password = make_password(serializer.validated_data.get("password"))
         serializer.save(password=hashed_password)
         print("normal user created")
+
+        # acknowledge that messate process success and dequeue messag fromt he queue
+        # else message remains in the queue until a acknoledge came
+        ch.basic_ack(delivery_tag=method.delivery_tag)
     else:
         print("cant update table for login")
 
@@ -55,15 +60,20 @@ def gov_user_signup_consume(ch,method,properties,body):
         try:
             # hashing password
             hashed_password = make_password(serializer.validated_data.get("password"))
-            gon_user_instance = serializer.save(password=hashed_password)
-            address_serializer.save(gov_body=gon_user_instance)
+            gov_user_instance = serializer.save(password=hashed_password,is_active=True)
+            address_serializer.save(gov_body=gov_user_instance)
+
+            # acknowledge that messate process success and dequeue messag fromt he queue
+            # else message remains in the queue until a acknoledge came
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            
         except Exception as e:
             print("cant update gov gov user")
     
     else:
         print("invalied fields")
 
-
+    
 
 
 
@@ -85,8 +95,8 @@ channel.queue_declare(queue='govuser_signup_blogs')
 
 '-------------------- CONSUMING FROM QUEUE ------------------------'
 # consuming from queue
-channel.basic_consume(queue='normaluser_signup_blogs',on_message_callback=normal_user_signup_consume,auto_ack=True)
-channel.basic_consume(queue='govuser_signup_blogs',on_message_callback=gov_user_signup_consume,auto_ack=True)
+channel.basic_consume(queue='normaluser_signup_blogs',on_message_callback=normal_user_signup_consume)
+channel.basic_consume(queue='govuser_signup_blogs',on_message_callback=gov_user_signup_consume)
 
 
 

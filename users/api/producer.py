@@ -71,5 +71,3 @@ def gov_user_signup_publish(data):
     channel.basic_publish(exchange='Govuser_login_exchange',routing_key='',body=json.dumps(data))
 
 
-
-
