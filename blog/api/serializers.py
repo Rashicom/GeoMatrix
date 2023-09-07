@@ -73,21 +73,53 @@ class BlogReactionSerializer(serializers.ModelSerializer):
     # save() internally calling the create methord so we are overriding the create method
     # overridign create methord to get_or_create to avoide recreating the excisting data
     def create(self, validated_data):
+        """
+        if user already voated, filter the instance, then update it according to the data
+        once user voted, same user can update the voat status
+        if there is no instance(not voated) crete one.
+        """
+
+        # filter instance if any
         instance = BlogReaction.objects.filter(blog_number=validated_data.get("blog_number"),user=validated_data.get("user")).first()
+        
+        # if user already liked or unlike update it
         if instance:
             instance.like = validated_data.get("like")
             instance.save()
+        
+        # if no instance (not reacted yet), create one
         else:
             instance = BlogReaction.objects.create(**validated_data)
         return instance
 
 
 
-class VoteReactionSerializer(serializers.ModelField):
+class VoteReactionSerializer(serializers.ModelSerializer):
 
     # excluding from validation
     voter = serializers.CharField(required=False)
     class Meta:
         model = VoteReaction
         fields = '__all__'
+    
+    # save() internally calling the create methord so we are overriding the create method
+    # overridign create methord to get_or_create to avoide recreating the excisting data
+    def create(self, validated_data):
+        """
+        if user already voated, filter the instance, then update it according to the data
+        once user voted, same user can update the voat status
+        if there is no instance(not voated) crete one.
+        """
+
+        # filter instance
+        instance = VoteReaction.objects.filter(blog_number=validated_data.get("blog_number"),voter=validated_data.get("voter")).first()
         
+        # if user alrady have a voting update it
+        if instance:
+            instance.reaction = validated_data.get("reaction")
+            instance.save()
+        
+        # if there is no voat instance, create one
+        else:
+            instance = VoteReaction.objects.create(**validated_data)
+        return instance

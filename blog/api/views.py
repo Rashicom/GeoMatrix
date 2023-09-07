@@ -149,7 +149,21 @@ class VoteReactions(APIView):
         accept: blog_number, reaction(must be one of the option)
         update the voating model
         """
-        pass
+        
+        # serializing data and validating
+        user = request.user
+        serializer = self.serializer_class(data = request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # save if serializer is valied
+        try:
+            serializer.save(voter=user)
+        except Exception as e:
+            print(e)
+            return Response({"details":"cant update database"},status=201)
+        return Response(request.data,status=201)
+
+        
 
         
         
