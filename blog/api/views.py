@@ -58,7 +58,6 @@ class Blog(APIView):
 
 "------------------ PUBLIC BLOG OPERATIONS -------------------"
 
-
 class GetBlogs(APIView):
 
     permission_classes = [AllowAny]
@@ -75,6 +74,7 @@ class GetBlogs(APIView):
         blog_set = self.model.objects.all()
         serializer = self.serializer_class(blog_set, many=True)
         return Response(serializer.data, status=200)
+
 
 
 # add comment

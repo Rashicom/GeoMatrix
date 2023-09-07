@@ -39,6 +39,10 @@ class BlogsSerializer(serializers.ModelSerializer):
 
 
 
+
+
+
+
 class GetCommentSerializer(serializers.ModelSerializer):
 
     blog_number = serializers.ReadOnlyField(source='blog_number.blog_number')
@@ -47,13 +51,16 @@ class GetCommentSerializer(serializers.ModelSerializer):
         fields = ['blog_number','commenter','parent','comment_text','comment_date','replay_set']
 
 
-
 class GetBlogSerializer(serializers.ModelSerializer):
 
-    comment_set = serializers.PrimaryKeyRelatedField(many=True,read_only=True)
+    comment_set = GetCommentSerializer(many=True, read_only=True)
     class Meta:
         model = Blogs
         fields = ['blog_number','blog_image','blog_descripton','blog_date','is_vote','comment_set']
+        
+
+
+
 
 
 
