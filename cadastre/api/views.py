@@ -668,3 +668,9 @@ class GetUserLand(APIView):
         return Response(serializer.data, status=200)
 
 
+
+
+class test(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, format=None):
+        return Response({"details":"cadestre microservice responding.."})

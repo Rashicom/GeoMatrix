@@ -167,7 +167,11 @@ class VoteReactions(APIView):
 
         
         
-        
+class test(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self,request,format=None):
+        return Response({"details":"blog microservice responding.."})
 
 
         

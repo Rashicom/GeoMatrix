@@ -25,6 +25,8 @@ urlpatterns = [
     # land filters
     path('', include(router.urls)),
 
+    path('test/',views.test.as_view()),
+    
 
 
 ]

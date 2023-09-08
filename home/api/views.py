@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly, AllowAny
 from .serializers import main_section_serializer, main_section_serializer_get, about_section_serializer, product_section_serializer, service_section_serializer
 from .models import main_section, main_section_images, main_section_descriptions, about_section, product_section, service_section
 from django.db import transaction
@@ -142,3 +142,12 @@ class service_section_data(APIView):
         """
         serializer = self.serializer_class(service_section.objects.all().first())
         return Response(serializer.data, status=200)
+
+
+
+# test rensonse for nginx call
+class test(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        return Response({"details":"home microservice is responding"})

@@ -12,5 +12,7 @@ urlpatterns = [
     path('about_section_data/', views.about_section_data.as_view()),
     path('product_section_data/', views.product_section_data.as_view()),
     path('service_section_data/', views.service_section_data.as_view()),
-
+    
+    path('test/',views.test.as_view())
+    
 ]

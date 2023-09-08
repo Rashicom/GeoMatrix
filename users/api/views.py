@@ -694,17 +694,10 @@ class GovTransactionHistory(APIView):
 
 
 
-# tcp connection for microservices
+# nginex test call responser
 class test(APIView):
-
+    
     permission_classes = [AllowAny]
     def get(self,request, format=None):
-        
-        data = {
-                "email": "siyad",
-                "adhar_id": "9846524845",
-                "contact_number": "9846142575"
-            }
-        signup_publish(data)
 
-        return Response({"details":"ok"}, status=200)
+        return Response({"details":"users microservice is responding.."}, status=200)
