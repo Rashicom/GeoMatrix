@@ -157,5 +157,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 # user models for authentication
-AUTH_USER_MODEL_NORMALUSER = "api.NormalUser"
+AUTH_USER_MODEL = "api.NormalUser"
 AUTH_USER_MODEL_GOV = "api.GovbodyUser"

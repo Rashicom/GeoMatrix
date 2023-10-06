@@ -115,6 +115,7 @@ class BlogReactions(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = BlogReactionSerializer
+    
     def post(self,request,format=None):
         """
         accept: blog_number, like(True of False)

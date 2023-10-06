@@ -8,7 +8,7 @@ path.append('/home/rashi/Microservice projects/GeoMatrix/cadastre/config/setting
 environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings') 
 django.setup()
 from api.serializers import NormalUserSerializer, GovbodyUserSerializer, GovbodyUserAddressSerializer
-
+from django.contrib.auth.hashers import make_password
 
 '-------------------- CALL BACK FUNCTIONS ---------------'
 # signup consumer
@@ -24,14 +24,30 @@ def normal_user_signup_consume(ch,method,properties, body):
     user_data = json.loads(body)
     serializer = NormalUserSerializer(data=user_data)
 
+
     # validating data and update the table
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
+    if serializer.is_valid():
+
+        # hashing password
+        hashed_password = make_password(serializer.validated_data.get("password"))
+
+        try:
+            serializer.save(password=hashed_password)
+            
+            # acknowledge that messate process success and dequeue messag fromt the queue
+            # else message remains in the queue until a acknoledge came
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+        except Exception as e:
+            print("cant update normal user")
+
+
         print("normal user created")
     else:
         print("cant update table for login")
     
 
+
+# gov body signup
 def gov_user_signup_consume(ch,method,properties,body):
     """
     creating gov user
@@ -43,15 +59,24 @@ def gov_user_signup_consume(ch,method,properties,body):
     address_serializer = GovbodyUserAddressSerializer(data=user_data.get("address"))
     serializer.is_valid()
     address_serializer.is_valid()
+
+    # hashing password
+    hashed_password = make_password(serializer.validated_data.get("password"))
     
     try:
-        gon_user_instance = serializer.save()
-        address_serializer.save(gov_body=gon_user_instance)
+
+        gov_user_instance = serializer.save(password=hashed_password,is_active=True)
+        address_serializer.save(gov_body=gov_user_instance)
+
+        # acknowledge that messate process success and dequeue messag fromt the queue
+        # else message remains in the queue until a acknoledge came
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    
     except Exception as e:
         print("cant update gov gov user")
 
-def test_consume(ch,method,properties,body):
-    print(body)
+
+
 
 
 
@@ -73,8 +98,8 @@ channel.queue_declare(queue='govuser_signup_cadastre')
 
 '------------------ CONSUMING FROM QUEUE -----------------'
 # consuming from queue
-channel.basic_consume(queue='normaluser_signup_cadastre', on_message_callback=normal_user_signup_consume, auto_ack=True)
-channel.basic_consume(queue='govuser_signup_cadastre', on_message_callback=gov_user_signup_consume, auto_ack=True)
+channel.basic_consume(queue='normaluser_signup_cadastre', on_message_callback=normal_user_signup_consume)
+channel.basic_consume(queue='govuser_signup_cadastre', on_message_callback=gov_user_signup_consume)
 
 
 

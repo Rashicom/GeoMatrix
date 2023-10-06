@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Land, NormalUser, LandGeography, LandOwnershipRegistry, LandTypeTaxList, TaxInvoice
@@ -9,6 +8,7 @@ from .serializers import LandRegistraionSerailizer,LandOwnershipRegistrySerializ
 from .landoperations import LandSplitValidator, LandRegistration
 from .landtax import LandTax
 from .landfilters import BaseLandFilters
+from .customauth import GovuserJwtAuthentication
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db.models.functions import Area
 from django.db import transaction
@@ -27,8 +27,8 @@ from datetime import date
 
 # regisering a new land
 class RegisterLand(APIView):
-    authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [AllowAny]
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LandRegistraionSerailizer
 
     def post(self, request, format=None):
@@ -55,7 +55,8 @@ class RegisterLand(APIView):
         # a poligon must have 3 corditates to make a loop
         if len(boundary_coordinates) < 4:
             print("invalied poligon")
-        
+            return Response({"details":"invalied cordinates"},status=400)
+
         """
         user return some cordinates which minimum or 3 cordinates. by joing the 
         3 cordinates we get a curved line not a closed loop. its not cusidered as a poligon
@@ -77,7 +78,7 @@ class RegisterLand(APIView):
         except Exception as e:
             print(e)
             error = {"details":"cant create a polygon using given cordinates, pleace enter correct coordinates"}
-            return Response(error,status=200)
+            return Response(error,status=400)
         
         # generate a centroid for the poligon for update the land location_cordinates of the LangGeography table
         location_coordinate = boundary_polygon.centroid
@@ -98,7 +99,7 @@ class RegisterLand(APIView):
 
         # taking only 2 decimal value
         area = round(area, 2)
-
+        
         # update tables
         try:
             with transaction.atomic():
@@ -130,7 +131,7 @@ class RegisterLand(APIView):
 
         except Exception as e:
             print(e)
-            return Response({"details":"somthing went wrong"})
+            return Response({"details":"somthing went wrong"},status=500)
 
 
         print("area", area)
@@ -145,7 +146,10 @@ class RegisterLand(APIView):
 # land bulk registration from exl file for a perticular user
 class BulkRegisterLand(APIView):
     
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LandRegistraionSerailizer
+
     def post(self, request, format=None):
         """
         fetching data from the exl file and validate all the rows before
@@ -154,7 +158,7 @@ class BulkRegisterLand(APIView):
                  may be some rows contain fault information and the updation cancelled
                  so we have to make sure all filds of all rows are valied before update
         we have a some stup to follow the bulc creation
-        1- first for loop: iterate through rows and validate all rows
+        1- first for loop: iterate through rows and validate data
         2- second for loop: iterate through rows and update to database
         """
 
@@ -304,6 +308,8 @@ class BulkRegisterLand(APIView):
 
 class LandSplitRegistration(APIView):
 
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LandSplitSerializer
 
     def post(self, request, format=None):
@@ -349,7 +355,7 @@ class LandSplitRegistration(APIView):
         register = LandRegistration()
         response_data = register.RegisterMultipleLandForMultipleUser(land_record_file,parent_land=parent_land_instance)
         if response_data is None:
-            return Response({"details":"somthing went wrong"})
+            return Response({"details":"somthing went wrong"},status=500)
         
         # after a succsessfull land registration, make some changes in the parent land, becouse parent land must be removed from some checks like taxing, filtering , etc..
         # the parent land will have some child lands which is splited from parent, and the spliting info we need to store for data generations so we cant delete
@@ -358,7 +364,7 @@ class LandSplitRegistration(APIView):
         parent_land_instance.active_till=date.today()
         parent_land_instance.save()
 
-        return Response(response_data,status=200)
+        return Response(response_data,status=201)
 
             
 
@@ -421,7 +427,10 @@ class ChangeLandOwnership(APIView):
 # get land by land_id 
 class GetLand(APIView):
 
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LandGeographySerializer
+
     # custom admin auth must be given here
     def get(self, request, format=None):
         """
@@ -454,6 +463,8 @@ class GetLand(APIView):
 # land tax crud 
 class LandTaxRates(APIView):
     
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = LandTypeTaxListSerializer
 
     def post(self, request, format=None):
@@ -467,8 +478,11 @@ class LandTaxRates(APIView):
         
         return Response(serializer.data,status=201)
 
+
     def get(self, request, format=None):
         """
+        accept : land_type, return land tax of given land_type
+        if no land type return all land_type tax list
         this method is returning the tax list
         """
         land_type = request.query_params.get("land_type")
@@ -495,13 +509,14 @@ class LandTaxRates(APIView):
 
 class GenerateTaxInvoice(APIView):
 
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     serializer_class = TaxInvoiceSerializer
     
     # get active invoice
     def get(self, request, format=None):
         """
-        get invoice by invoice number, if invoice number not provided
-        return all invoices
+        get alll active invoices
         """
         invoice_list = TaxInvoice.objects.filter(is_active=True)
         serializer = self.serializer_class(invoice_list,many=True)
@@ -575,7 +590,7 @@ class LandFilteres(viewsets.ViewSet):
         # geting snapshort date from params
         snapshort_date = request.query_params.get("snapshort_date")
         if not snapshort_date:
-            return Response({"details":"snapshort_date not provided"})
+            return Response({"details":"snapshort_date not provided"},status=400)
 
         # creating object fo base aldn filter class
         # all the filters in this class returning filtered objects as Land model query set
@@ -592,7 +607,7 @@ class LandFilteres(viewsets.ViewSet):
     @action(detail=False)
     def land_in_address(self, request, format=None):
         """
-        accept: state,district,locality,zipcode,zctive_land_only for query params
+        accept: state,district,locality,zipcode,active_land_only for query params
         all fieds are optional
         active_land_only = True by default(retunrs only active lands)
         return: filtering the land according to the given data and return filtered data
@@ -648,18 +663,11 @@ class GetUserLand(APIView):
     serializer_class = LandGeographySerializer
 
     def get(self, request, format=None):
-        
-        # get email from parameter
-        email = request.query_params.get('email')
-        if not email:
-            return Response({"email":"this paremeter is required"})
-        
-        # get user instance
-        try:
-            user = NormalUser.objects.get(email=email)
-        except Exception as e:
-            print(e)
-            return Response({"details":"user not found"},status=401)
+        """
+        return land details of the requested authenticated user
+        """
+        # get user
+        user = request.user
         
         # fetchind data and serialize it
         user_land_list = LandGeography.objects.filter(land__user=user, land__is_active=True)
@@ -670,7 +678,11 @@ class GetUserLand(APIView):
 
 
 
+
+
 class test(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [GovuserJwtAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
+        print("accessed")
         return Response({"details":"cadestre microservice responding.."})

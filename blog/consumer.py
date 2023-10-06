@@ -38,7 +38,7 @@ def normal_user_signup_consume(ch,method,properties, body):
         serializer.save(password=hashed_password)
         print("normal user created")
 
-        # acknowledge that messate process success and dequeue messag fromt he queue
+        # acknowledge that messate process success and dequeue messag fromt the queue
         # else message remains in the queue until a acknoledge came
         ch.basic_ack(delivery_tag=method.delivery_tag)
     else:

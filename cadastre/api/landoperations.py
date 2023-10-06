@@ -209,18 +209,20 @@ class LandRegistration:
 
 
 
-
-
 # for different kinds of land validation
 # inherit this class for create land validators
 class BaseLandValidator:
-
+    """
+    Extend this class for creatind different land vlidations
+    """
     def __init__(self, land_record_file=None):
         self.land_record_file = land_record_file
         
     
     def is_valied(self):
-        pass  
+        """
+        
+        """
 
 
 
@@ -229,7 +231,7 @@ class LandSplitValidator(BaseLandValidator):
     """
     parameters: land_record_file and parent_user_instance
     """
-
+    
     def __init__(self, land_record_file=None, parent_land_instance=None):
         super().__init__(land_record_file=land_record_file)
 

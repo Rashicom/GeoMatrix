@@ -16,6 +16,7 @@ class GovbodyUserSerializer(serializers.ModelSerializer):
         model = GovbodyUser
         fields = '__all__'
 
+
 class GovbodyUserAddressSerializer(serializers.ModelSerializer):
     # excluding forign key check from is_valid()
     gov_body = serializers.CharField(required=False)

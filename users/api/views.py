@@ -14,11 +14,12 @@ from .serializers import (
     gov_body_wallet_serializer,
     GovuserLoginSerializer,
     GovwalletTransactionSerializer,
+    
 
 )
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Wallet, Address, Wallet_transaction, Gov_body_wallet, Gov_body_user, Gov_body_wallet_transaction
+from .models import Wallet, Address, Wallet_transaction, Gov_body_wallet, Gov_body_user, Gov_body_wallet_transaction, CustomUser, Messages, Conversation
 from datetime import date
 from django.db.models import Q
 from rest_framework_simplejwt.authentication import JWTAuthentication

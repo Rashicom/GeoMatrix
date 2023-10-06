@@ -1,4 +1,4 @@
-from .models import CustomUser, Address, Wallet_transaction, Gov_body_user, Gov_body_Address,Gov_body_wallet, Gov_body_wallet_transaction
+from .models import CustomUser, Address, Wallet_transaction, Gov_body_user, Gov_body_Address,Gov_body_wallet, Gov_body_wallet_transaction, Messages, Conversation
 from rest_framework import serializers
 
 
@@ -93,5 +93,4 @@ class GovwalletTransactionSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 
-        
-        
+
