@@ -17,6 +17,7 @@ urlpatterns = [
     path("redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("signup/", views.signup.as_view()),
     path("login/", views.login.as_view()),
+    path("get_user/",views.GetUser.as_view()),
     path("add_address/", views.add_address.as_view()),
     path("edit_address/", views.edit_address.as_view()),
     path("get_address/", views.get_address.as_view()),

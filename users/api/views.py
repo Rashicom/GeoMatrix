@@ -14,6 +14,7 @@ from .serializers import (
     gov_body_wallet_serializer,
     GovuserLoginSerializer,
     GovwalletTransactionSerializer,
+    GetUserSerializer,
     
 
 )
@@ -132,6 +133,27 @@ class login(APIView):
             # if user none, wrong email or passord
             else:
                 return Response({"details": "wrong email or password"}, status=401)
+
+
+# get authenticated users details
+class GetUser(APIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = GetUserSerializer
+    
+    def get(self, request, format=None):
+        """
+        this method is returnign authenticated users details
+        """
+
+        # fetching authenticated user detains and fetch matched data from database
+        email = request.user
+        user_details = CustomUser.objects.get(email = email)
+        
+        # serialize and return
+        serializer = self.serializer_class(user_details)
+        return Response(serializer.data,status=200)
+
 
 
 # update address table
